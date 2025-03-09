@@ -118,8 +118,13 @@ The following components need to be implemented to align with the core vision:
 - Implement pattern-to-MIDI translation logic
 - Add basic music notation visualization
 - Implement MIDI playback capabilities
+- Integrate text-to-MIDI generation capabilities
 
 **Technical Approach:**
+- Create a MIDIGenerationService that coordinates the generation pipeline
+- Use reasoning LLM to translate text to musical parameters
+- Integrate open-source MIDI generation models (MuseNet or MidiBERT)
+- Implement post-processing for musical coherence and playability
 - Use Tone.js for MIDI generation and playback
 - Implement Web MIDI API for device output
 - Create custom algorithms for audio-to-MIDI conversion
@@ -127,9 +132,19 @@ The following components need to be implemented to align with the core vision:
 
 **Files to Create/Modify:**
 - `src/services/midi/MIDIService.ts` - Core MIDI service
+- `src/services/midi/MIDIGenerationService.ts` - Text-to-MIDI generation service
+- `src/services/midi/MIDIParameterMapper.ts` - Musical parameter mapping
+- `src/services/midi/MIDIPostProcessor.ts` - Musical coherence processing
 - `src/components/midi/MIDIExport.tsx` - Export interface component
 - `src/components/midi/NotationView.tsx` - Notation visualization component
-- `src/components/audio/MIDIControls.tsx` - MIDI playback controls
+- `src/components/midi/MIDIControls.tsx` - MIDI playback controls
+- `src/components/midi/TextToMIDIForm.tsx` - Text input for MIDI generation
+
+**Example Use Cases:**
+- Generate MIDI from text descriptions like "create a melancholic piano melody in C minor with arpeggios"
+- Compose music based on prompts like "compose an upbeat jazz progression with walking bass"
+- Convert detected audio patterns to MIDI for further editing in DAWs
+- Generate sheet music from audio recordings
 
 ### 5. Unified Dashboard (1 week)
 
