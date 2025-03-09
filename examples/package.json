@@ -1,14 +1,14 @@
 {
-  "name": "audio-learning-hub-examples",
+  "name": "grymsynth-examples",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "ts-node-esm run-example.ts",
+    "start": "ts-node-esm --project tsconfig.esm.json run-example.ts",
     "build": "tsc -b",
     "clean": "rimraf ../dist/examples",
     "prebuild": "npm run clean",
     "prepare": "npm run build",
-    "debug": "NODE_ENV=development ts-node-esm --inspect run-example.ts"
+    "debug": "NODE_ENV=development ts-node-esm --project tsconfig.esm.json --inspect run-example.ts"
   },
   "dependencies": {
     "../": "file:.."
