@@ -80,7 +80,7 @@ jobs:
         cd release && zip -r ../audio-learning-hub-${{ needs.prepare.outputs.version }}.zip .
 
     - name: Upload release package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-package
         path: audio-learning-hub-${{ needs.prepare.outputs.version }}.zip
@@ -219,7 +219,7 @@ jobs:
         echo "${{ steps.extract-notes.outputs.notes }}" > release-notes.md
 
     - name: Upload release notes
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-notes
         path: release-notes.md

@@ -52,21 +52,21 @@ jobs:
       if: always()
 
     - name: Upload error handling coverage
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: error-handling-coverage
         path: coverage/error-handling
       if: always()
 
     - name: Upload infrastructure coverage
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: infrastructure-coverage
         path: coverage/test-infrastructure
       if: always()
 
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-report
         path: |
@@ -93,7 +93,7 @@ jobs:
           infrastructure-coverage/coverage-final.json
 
     - name: Upload combined coverage
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: combined-coverage
         path: coverage-combined
