@@ -11,6 +11,60 @@ A sophisticated TypeScript-based system for audio pattern recognition, learning,
 - **Performance Monitoring**: Comprehensive health monitoring and metrics
 - **Asset Management**: Efficient handling of large binary files outside the Git repository
 
+## How to Use GrymSynth
+
+GrymSynth provides powerful audio pattern recognition and learning capabilities. Here's how to use it:
+
+### Running the Synth
+
+1. **Start the application**:
+   ```bash
+   npm start
+   ```
+   This launches the main interface where you can load audio files and analyze patterns.
+
+2. **Load audio samples**:
+   - Click "Load Audio" in the interface
+   - Select an audio file from your system
+   - The system will automatically begin analyzing the audio
+
+3. **View pattern analysis**:
+   - Patterns are displayed in the visualization panel
+   - Color coding indicates pattern confidence levels
+   - Hover over patterns to see detailed information
+
+### Providing Feedback
+
+The system learns from your feedback to improve pattern recognition:
+
+1. **Rate pattern accuracy**:
+   - Select a detected pattern
+   - Use the feedback controls (👍/👎) to rate accuracy
+   - Add optional comments for more detailed feedback
+
+2. **Adjust pattern boundaries**:
+   - Drag pattern edges to refine detection boundaries
+   - System will learn from your adjustments
+
+3. **Create custom patterns**:
+   - Select an undetected region
+   - Click "Create Pattern"
+   - Name and categorize the new pattern
+
+### Viewing Learning Progress
+
+Monitor how the system improves over time:
+
+1. **Open the Learning Dashboard**:
+   ```bash
+   npm run dashboard
+   ```
+
+2. **View metrics**:
+   - Pattern recognition accuracy over time
+   - Confidence scores for different pattern types
+   - System adaptation rate
+
 ## Quick Start
 
 ```bash
@@ -63,7 +117,7 @@ The project also uses an external assets directory (by default at `../assets/`) 
 ### Setup
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/GrymSynth.git
+git clone https://github.com/alexgrimes/GrymSynth.git
 cd GrymSynth
 
 # Full setup (installs dependencies, downloads assets, and runs tests)
@@ -225,5 +279,5 @@ MIT License - see [LICENSE](./LICENSE) for details.
 
 ## Support
 
-- [Issue Tracker](https://github.com/yourusername/GrymSynth/issues)
+- [Issue Tracker](https://github.com/alexgrimes/GrymSynth/issues)
 - [Documentation](./docs)
