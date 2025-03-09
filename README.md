@@ -1,69 +1,76 @@
 # GrymSynth
 
-A sophisticated TypeScript-based system for audio pattern recognition, learning, and analysis. The system uses adaptive learning techniques to improve pattern recognition accuracy over time.
+GrymSynth is a powerful text-to-audio synthesis platform that transforms textual descriptions into rich, nuanced audio using advanced AI models and interactive visualization tools.
+
+## Core Vision
+
+GrymSynth bridges the gap between creative expression and technical audio synthesis by providing:
+
+- **Text-to-Audio Synthesis**: Transform text descriptions into rich audio using AI models
+- **Interactive Visual Interface**: Manipulate audio through color-coded visualizations and touch gestures
+- **Adaptive Learning**: System improves through feedback, building personalized knowledge over time
+- **Multiple Output Formats**: Generate audio, MIDI files, and music notation from text descriptions
 
 ## Features
 
-- **Pattern Recognition**: Advanced audio pattern detection and analysis
-- **Adaptive Learning**: System improves through feedback and experience
-- **Contextual Memory**: Efficient storage and retrieval of pattern information
-- **Relationship Tracking**: Discovers and maintains pattern relationships
-- **Performance Monitoring**: Comprehensive health monitoring and metrics
-- **Asset Management**: Efficient handling of large binary files outside the Git repository
+- **Text/Speech to Audio Generation**: Create audio from textual descriptions using AudioLDM
+- **Mathematical Audio Transformations**: Apply formalized music approaches with XenakisLDM
+- **Pattern Recognition & Learning**: Identify and learn from audio patterns over time
+- **Interactive Visualization**: Color-coded graphic equalizer with touch gesture manipulation
+- **Musical Concept Translation**: Convert high-level musical concepts to technical parameters
+- **MIDI Generation**: Create MIDI files from recognized patterns and transformations
+- **Robust System Architecture**: Comprehensive health monitoring and error recovery
 
 ## How to Use GrymSynth
 
-GrymSynth provides powerful audio pattern recognition and learning capabilities. Here's how to use it:
+GrymSynth provides an intuitive interface for audio creation and manipulation:
 
-### Running the Synth
+### Creating Audio
 
 1. **Start the application**:
    ```bash
    npm start
    ```
-   This launches the main interface where you can load audio files and analyze patterns.
+   This launches the main interface where you can create and manipulate audio.
 
-2. **Load audio samples**:
-   - Click "Load Audio" in the interface
-   - Select an audio file from your system
-   - The system will automatically begin analyzing the audio
+2. **Generate audio from text**:
+   - Enter a text description in the prompt field
+   - Adjust generation parameters if needed
+   - Click "Generate" to create audio from your description
 
-3. **View pattern analysis**:
-   - Patterns are displayed in the visualization panel
-   - Color coding indicates pattern confidence levels
-   - Hover over patterns to see detailed information
+3. **Visualize and manipulate**:
+   - View the generated audio in the color-coded visualization panel
+   - Use touch gestures to manipulate audio parameters in real-time
+   - Apply mathematical transformations through the XenakisLDM controls
 
 ### Providing Feedback
 
-The system learns from your feedback to improve pattern recognition:
+The system learns from your feedback to improve over time:
 
-1. **Rate pattern accuracy**:
-   - Select a detected pattern
-   - Use the feedback controls (👍/👎) to rate accuracy
-   - Add optional comments for more detailed feedback
+1. **Rate audio quality**:
+   - Use the feedback controls to rate generated audio
+   - Provide specific feedback on aspects like timbre, rhythm, or harmony
+   - The system will adapt to your preferences with continued use
 
-2. **Adjust pattern boundaries**:
-   - Drag pattern edges to refine detection boundaries
-   - System will learn from your adjustments
+2. **Save and export**:
+   - Save your creations to your library
+   - Export as audio files (.wav, .mp3)
+   - Generate MIDI files for use in other music software
+   - Create music notation from your audio
 
-3. **Create custom patterns**:
-   - Select an undetected region
-   - Click "Create Pattern"
-   - Name and categorize the new pattern
+### Exploring Musical Concepts
 
-### Viewing Learning Progress
+Experiment with high-level musical concepts:
 
-Monitor how the system improves over time:
-
-1. **Open the Learning Dashboard**:
+1. **Open the Concept Explorer**:
    ```bash
-   npm run dashboard
+   npm run concepts
    ```
 
-2. **View metrics**:
-   - Pattern recognition accuracy over time
-   - Confidence scores for different pattern types
-   - System adaptation rate
+2. **Adjust musical parameters**:
+   - Experiment with concepts like "harmonic density" or "textural complexity"
+   - See real-time visualization of parameter changes
+   - Learn how musical concepts translate to audio characteristics
 
 ## Quick Start
 
