@@ -1,0 +1,159 @@
+{
+  "version": "1.0",
+  "updated": "2025-03-09T12:00:00.000Z",
+  "assets": [
+    {
+      "id": "audioldm-s-full",
+      "name": "AudioLDM-S Full Model",
+      "description": "Full AudioLDM-S model for audio generation",
+      "url": "https://huggingface.co/haoheliu/audioldm-s-full-v2/resolve/main/audioldm-s-full-v2.ckpt",
+      "fallbackUrls": [
+        "https://zenodo.org/record/7364654/files/audioldm-s-full-v2.ckpt"
+      ],
+      "localPath": "models/audioldm/audioldm-s-full-v2.ckpt",
+      "checksum": "7a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c51",
+      "size": 1342177280,
+      "version": "2.0",
+      "required": true,
+      "tags": [
+        "model",
+        "audio-generation",
+        "audioldm"
+      ]
+    },
+    {
+      "id": "audioldm-m-full",
+      "name": "AudioLDM-M Full Model",
+      "description": "Full AudioLDM-M model for audio generation",
+      "url": "https://huggingface.co/haoheliu/audioldm-m-full/resolve/main/audioldm-m-full.ckpt",
+      "fallbackUrls": [
+        "https://zenodo.org/record/7364654/files/audioldm-m-full.ckpt"
+      ],
+      "localPath": "models/audioldm/audioldm-m-full.ckpt",
+      "checksum": "9f95d8cbe9e4a1d7c70a7f9b6e4c8a3f6c8d7b5a4e3c2d1b0a9f8e7d6c5b4a3f2",
+      "size": 2684354560,
+      "version": "1.0",
+      "required": false,
+      "tags": [
+        "model",
+        "audio-generation",
+        "audioldm"
+      ]
+    },
+    {
+      "id": "audioldm-l-full",
+      "name": "AudioLDM-L Full Model",
+      "description": "Full AudioLDM-L model for audio generation",
+      "url": "https://huggingface.co/haoheliu/audioldm-l-full/resolve/main/audioldm-l-full.ckpt",
+      "fallbackUrls": [
+        "https://zenodo.org/record/7364654/files/audioldm-l-full.ckpt"
+      ],
+      "localPath": "models/audioldm/audioldm-l-full.ckpt",
+      "checksum": "1a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c52",
+      "size": 3758096384,
+      "version": "1.0",
+      "required": false,
+      "tags": [
+        "model",
+        "audio-generation",
+        "audioldm"
+      ]
+    },
+    {
+      "id": "wav2vec2-base",
+      "name": "Wav2Vec2 Base Model",
+      "description": "Wav2Vec2 base model for audio feature extraction",
+      "url": "https://huggingface.co/facebook/wav2vec2-base/resolve/main/pytorch_model.bin",
+      "localPath": "models/wav2vec2/base/pytorch_model.bin",
+      "checksum": "2a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c53",
+      "size": 360448000,
+      "version": "1.0",
+      "required": true,
+      "tags": [
+        "model",
+        "audio-processing",
+        "wav2vec2"
+      ]
+    },
+    {
+      "id": "wav2vec2-large",
+      "name": "Wav2Vec2 Large Model",
+      "description": "Wav2Vec2 large model for audio feature extraction",
+      "url": "https://huggingface.co/facebook/wav2vec2-large/resolve/main/pytorch_model.bin",
+      "localPath": "models/wav2vec2/large/pytorch_model.bin",
+      "checksum": "3a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c54",
+      "size": 1240000000,
+      "version": "1.0",
+      "required": false,
+      "tags": [
+        "model",
+        "audio-processing",
+        "wav2vec2"
+      ]
+    },
+    {
+      "id": "xenakisldm-base",
+      "name": "XenakisLDM Base Model",
+      "description": "XenakisLDM base model for audio generation",
+      "url": "https://huggingface.co/xenakisldm/xenakisldm-base/resolve/main/xenakisldm-base.ckpt",
+      "localPath": "models/xenakisldm/xenakisldm-base.ckpt",
+      "checksum": "4a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c55",
+      "size": 1073741824,
+      "version": "1.0",
+      "required": true,
+      "tags": [
+        "model",
+        "audio-generation",
+        "xenakisldm"
+      ]
+    },
+    {
+      "id": "test-audio-samples",
+      "name": "Test Audio Samples",
+      "description": "Collection of test audio samples for development and testing",
+      "url": "https://example.com/audio-learning-hub/test-audio-samples.zip",
+      "localPath": "data/test-audio-samples.zip",
+      "checksum": "5a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c56",
+      "size": 52428800,
+      "version": "1.0",
+      "required": true,
+      "tags": [
+        "data",
+        "audio-samples",
+        "testing"
+      ]
+    },
+    {
+      "id": "gama-model-base",
+      "name": "GAMA Base Model",
+      "description": "GAMA base model for audio pattern recognition",
+      "url": "https://example.com/audio-learning-hub/gama-model-base.pt",
+      "localPath": "models/gama/gama-model-base.pt",
+      "checksum": "6a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c57",
+      "size": 536870912,
+      "version": "1.0",
+      "required": true,
+      "tags": [
+        "model",
+        "audio-recognition",
+        "gama"
+      ]
+    },
+    {
+      "id": "gama-model-large",
+      "name": "GAMA Large Model",
+      "description": "GAMA large model for audio pattern recognition",
+      "url": "https://example.com/audio-learning-hub/gama-model-large.pt",
+      "localPath": "models/gama/gama-model-large.pt",
+      "checksum": "7a0f6bd3bcc2c0ef10f4c50d960162a1e651f9ca6c3c3e7b9e3feff2c6f31c58",
+      "size": 1073741824,
+      "version": "1.0",
+      "required": false,
+      "tags": [
+        "model",
+        "audio-recognition",
+        "gama"
+      ]
+    }
+  ]
+}

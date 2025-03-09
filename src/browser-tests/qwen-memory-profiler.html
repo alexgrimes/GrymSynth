@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Qwen2-Audio Memory Profiler</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+        .measurement { margin-bottom: 20px; }
+        .phase { color: #666; }
+        .number { color: #0066cc; }
+        .error { color: #cc0000; }
+        .success { color: #00cc00; }
+        .warning { color: #ff9900; }
+        #controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 20px 0; }
+        button { padding: 10px; cursor: pointer; }
+        .config-item { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h2>Qwen2-Audio Memory Profiler</h2>
+    
+    <div id="config">
+        <h3>Configuration</h3>
+        <div class="config-item">
+            <label>Quantization:</label>
+            <select id="quantization">
+                <option value="q4_K_M">q4_K_M (4.2GB RAM)</option>
+                <option value="q4_0">q4_0 (Smaller, lower quality)</option>
+                <option value="q5_K_M">q5_K_M (Better quality, more RAM)</option>
+            </select>
+        </div>
+        <div class="config-item">
+            <label>Nexa-SDK Port:</label>
+            <input type="number" id="nexaPort" value="8001" />
+        </div>
+    </div>
+
+    <div id="controls">
+        <button onclick="measureBaseline()">1. Measure Baseline</button>
+        <button onclick="checkNexaSDK()">2. Check Nexa-SDK</button>
+        <button onclick="profileModelLoad()">3. Profile Model Load</button>
+        <button onclick="testAudioProcessing()">4. Test Audio Processing</button>
+        <button onclick="testSpeakerID()">5. Test Speaker ID</button>
+        <button onclick="testModeTransition()">6. Test Mode Transition</button>
+    </div>
+
+    <div>
+        <h3>Audio Input Test</h3>
+        <input type="file" id="audioFile" accept="audio/*" />
+    </div>
+
+    <h3>Status</h3>
+    <div id="status"></div>
+
+    <h3>Memory Profile</h3>
+    <pre id="measurements"></pre>
+
+    <script>
+        class Qwen2AudioProfiler {
+            constructor() {
+                this.snapshots = [];
+                this.measurements = document.getElementById('measurements');
+                this.status = document.getElementById('status');
+                this.audioContext = null;
+                this.modelLoaded = false;
+            }
+
+            get nexaUrl() {
+                const port = document.getElementById('nexaPort').value;
+                return `http://localhost:${port}`;
+            }
+
+            get selectedQuantization() {
+                return document.getElementById('quantization').value;
+            }
+
+            formatBytes(bytes) {
+                const units = ['B', 'KB', 'MB', 'GB'];
+                let size = bytes;
+                let unitIndex = 0;
+                
+                while (size >= 1024 && unitIndex < units.length - 1) {
+                    size /= 1024;
+                    unitIndex++;
+                }
+                
+                return `${size.toFixed(2)}${units[unitIndex]}`;
+            }
+
+            updateStatus(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                this.status.innerHTML = 
+                    `<div class="${type}">[${timestamp}] ${message}</div>` + 
+                    this.status.innerHTML;
+                console.log(`[${type}] ${message}`);
+            }
+
+            takeSnapshot(label) {
+                if (!performance.memory) {
+                    throw new Error('Memory API not available - run Chrome with --enable-precise-memory-info');
+                }
+
+                const snapshot = {
+                    label,
+                    timestamp: Date.now(),
+                    heapUsed: performance.memory.usedJSHeapSize,
+                    heapTotal: performance.memory.totalJSHeapSize,
+                    heapLimit: performance.memory.jsHeapSizeLimit
+                };
+
+                this.snapshots.push(snapshot);
+                return snapshot;
+            }
+
+            logMeasurement(label, data) {
+                let output = `\n=== ${label} ===\n`;
+                for (const [key, value] of Object.entries(data)) {
+                    const formattedValue = typeof value === 'number' ? 
+                        this.formatBytes(value) : value;
+                    output += `${key}: ${formattedValue}\n`;
+                }
+                
+                this.measurements.textContent = output + this.measurements.textContent;
+            }
+
+            async measureBaseline() {
+                this.updateStatus('Measuring baseline memory usage...');
+                
+                // Clear any previous state
+                this.snapshots = [];
+                this.modelLoaded = false;
+
+                if (window.gc) {
+                    try {
+                        window.gc();
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    } catch (e) {
+                        this.updateStatus('Warning: Manual GC not available', 'warning');
+                    }
+                }
+
+                const baseline = this.takeSnapshot('baseline');
+                
+                this.logMeasurement('Baseline Memory', {
+                    heapUsed: baseline.heapUsed,
+                    heapTotal: baseline.heapTotal,
+                    available: baseline.heapLimit - baseline.heapUsed,
+                    quantization: this.selectedQuantization
+                });
+
+                return baseline;
+            }
+
+            async checkNexaSDK() {
+                this.updateStatus('Checking Nexa-SDK status...');
+                
+                try {
+                    const response = await fetch(`${this.nexaUrl}/status`);
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}`);
+                    }
+                    
+                    const status = await response.json();
+                    this.updateStatus('Nexa-SDK is running', 'success');
+                    
+                    return true;
+                } catch (error) {
+                    this.updateStatus(
+                        `Nexa-SDK not available - Run 'nexa run qwen2audio' first\n${error.message}`, 
+                        'error'
+                    );
+                    return false;
+                }
+            }
+
+            async profileModelLoad() {
+                const sdkReady = await this.checkNexaSDK();
+                if (!sdkReady) return;
+
+                this.updateStatus(`Loading Qwen2-Audio (${this.selectedQuantization})...`);
+                const before = this.takeSnapshot('pre-load');
+
+                try {
+                    // Request model load with specific quantization
+                    const response = await fetch(`${this.nexaUrl}/load`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: 'qwen2audio',
+                            quantization: this.selectedQuantization
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to load model: ${response.status}`);
+                    }
+
+                    const after = this.takeSnapshot('post-load');
+                    this.modelLoaded = true;
+
+                    this.logMeasurement('Model Load Impact', {
+                        loadTime: after.timestamp - before.timestamp,
+                        memoryIncrease: after.heapUsed - before.heapUsed,
+                        peakUsage: Math.max(...this.snapshots.map(s => s.heapUsed)),
+                        quantization: this.selectedQuantization
+                    });
+
+                    this.updateStatus('Model loaded successfully', 'success');
+                } catch (error) {
+                    this.updateStatus(`Failed to load model: ${error.message}`, 'error');
+                }
+            }
+
+            async testAudioProcessing() {
+                if (!this.modelLoaded) {
+                    this.updateStatus('Load model first!', 'error');
+                    return;
+                }
+
+                const fileInput = document.getElementById('audioFile');
+                if (!fileInput.files.length) {
+                    this.updateStatus('Select an audio file first!', 'error');
+                    return;
+                }
+
+                const before = this.takeSnapshot('pre-processing');
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('audio', fileInput.files[0]);
+
+                    const response = await fetch(`${this.nexaUrl}/process_audio`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Processing failed: ${response.status}`);
+                    }
+
+                    const after = this.takeSnapshot('post-processing');
+
+                    this.logMeasurement('Audio Processing Impact', {
+                        processingTime: after.timestamp - before.timestamp,
+                        memoryIncrease: after.heapUsed - before.heapUsed,
+                        peakUsage: Math.max(...this.snapshots.map(s => s.heapUsed))
+                    });
+
+                    this.updateStatus('Audio processed successfully', 'success');
+                } catch (error) {
+                    this.updateStatus(`Audio processing failed: ${error.message}`, 'error');
+                }
+            }
+
+            async testSpeakerID() {
+                if (!this.modelLoaded) {
+                    this.updateStatus('Load model first!', 'error');
+                    return;
+                }
+
+                const fileInput = document.getElementById('audioFile');
+                if (!fileInput.files.length) {
+                    this.updateStatus('Select an audio file first!', 'error');
+                    return;
+                }
+
+                const before = this.takeSnapshot('pre-speaker-id');
+
+                try {
+                    const formData = new FormData();
+                    formData.append('audio', fileInput.files[0]);
+
+                    const response = await fetch(`${this.nexaUrl}/speaker_id`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Speaker ID failed: ${response.status}`);
+                    }
+
+                    const after = this.takeSnapshot('post-speaker-id');
+
+                    this.logMeasurement('Speaker ID Impact', {
+                        processingTime: after.timestamp - before.timestamp,
+                        memoryIncrease: after.heapUsed - before.heapUsed,
+                        peakUsage: Math.max(...this.snapshots.map(s => s.heapUsed))
+                    });
+
+                    this.updateStatus('Speaker identification complete', 'success');
+                } catch (error) {
+                    this.updateStatus(`Speaker ID failed: ${error.message}`, 'error');
+                }
+            }
+
+            async testModeTransition() {
+                if (!this.modelLoaded) {
+                    this.updateStatus('Load model first!', 'error');
+                    return;
+                }
+
+                const before = this.takeSnapshot('pre-transition');
+
+                try {
+                    // Test transition between audio and text modes
+                    const response = await fetch(`${this.nexaUrl}/switch_mode`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mode: 'text' })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Mode transition failed: ${response.status}`);
+                    }
+
+                    const after = this.takeSnapshot('post-transition');
+
+                    this.logMeasurement('Mode Transition Impact', {
+                        transitionTime: after.timestamp - before.timestamp,
+                        memoryImpact: after.heapUsed - before.heapUsed,
+                        peakUsage: Math.max(...this.snapshots.map(s => s.heapUsed))
+                    });
+
+                    this.updateStatus('Mode transition complete', 'success');
+                } catch (error) {
+                    this.updateStatus(`Mode transition failed: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        const profiler = new Qwen2AudioProfiler();
+
+        async function measureBaseline() {
+            await profiler.measureBaseline();
+        }
+
+        async function checkNexaSDK() {
+            await profiler.checkNexaSDK();
+        }
+
+        async function profileModelLoad() {
+            await profiler.profileModelLoad();
+        }
+
+        async function testAudioProcessing() {
+            await profiler.testAudioProcessing();
+        }
+
+        async function testSpeakerID() {
+            await profiler.testSpeakerID();
+        }
+
+        async function testModeTransition() {
+            await profiler.testModeTransition();
+        }
+
+        // Initial baseline
+        measureBaseline();
+    </script>
+</body>
+</html>

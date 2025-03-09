@@ -1,0 +1,25 @@
+{
+  "name": "xenakisldm-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node run-all-tests.js",
+    "test:unit": "jest --config jest.config.js tests/unit --verbose",
+    "test:integration": "jest --config jest.config.js tests/integration --verbose",
+    "test:coverage": "jest --config jest.config.js --coverage",
+    "test:watch": "jest --config jest.config.js --watch",
+    "test:ci": "jest --config jest.config.js --ci --coverage --reporters=default --reporters=jest-junit",
+    "pretest": "rimraf coverage reports",
+    "test:sanity": "jest --config jest.config.js tests/sanity.test.js --verbose"
+  },
+  "dependencies": {
+    "@jest/globals": "^29.5.0",
+    "jest": "^29.5.0",
+    "jest-environment-node": "^29.5.0"
+  },
+  "devDependencies": {
+    "jest-cli": "^29.5.0",
+    "jest-junit": "^15.0.0",
+    "rimraf": "^5.0.1"
+  }
+}

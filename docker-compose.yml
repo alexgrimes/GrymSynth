@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: GrymSynth
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "node", "scripts/healthcheck.js"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dependencies
+    container_name: GrymSynth-test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=test
+    command: npm run test
+    depends_on:
+      - app
+
+  performance-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dependencies
+    container_name: GrymSynth-performance
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=test
+    command: npm run test:performance
+    depends_on:
+      - app
+
+networks:
+  default:
+    name: GrymSynth-network
+    driver: bridge
+
+volumes:
+  node_modules:

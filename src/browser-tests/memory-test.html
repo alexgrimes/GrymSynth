@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Browser Memory Testing</title>
+    <style>
+        .memory-log {
+            font-family: monospace;
+            white-space: pre;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+        .warning { color: orange; }
+        .critical { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h2>Memory Testing Dashboard</h2>
+    
+    <div id="controls">
+        <button onclick="loadModel('GAMA')">Load GAMA</button>
+        <button onclick="loadModel('AudioLog')">Load AudioLog</button>
+        <button onclick="forceCleanup()">Force Cleanup</button>
+    </div>
+    
+    <h3>Memory Status</h3>
+    <div id="memoryStatus" class="memory-log"></div>
+    
+    <h3>Test Log</h3>
+    <div id="testLog" class="memory-log"></div>
+
+    <script>
+        const THRESHOLDS = {
+            BASELINE: 120 * 1024 * 1024,    // 120MB
+            WARNING: 170 * 1024 * 1024,     // 170MB
+            CRITICAL: 190 * 1024 * 1024,    // 190MB
+            MIN_FREE: 30 * 1024 * 1024      // 30MB
+        };
+
+        let testArrays = [];
+        let activeModel = null;
+
+        function formatBytes(bytes) {
+            return `${Math.round(bytes / 1024 / 1024)}MB`;
+        }
+
+        function logMemory(label) {
+            if (!performance.memory) {
+                console.warn('Memory API not available - run Chrome with --enable-precise-memory-info');
+                return null;
+            }
+
+            const memory = {
+                used: performance.memory.usedJSHeapSize,
+                total: performance.memory.totalJSHeapSize,
+                limit: performance.memory.jsHeapSizeLimit
+            };
+
+            const status = document.getElementById('memoryStatus');
+            let statusHtml = `${label}:\n`;
+            statusHtml += `Heap Used: ${formatBytes(memory.used)}\n`;
+            statusHtml += `Heap Total: ${formatBytes(memory.total)}\n`;
+            statusHtml += `Heap Limit: ${formatBytes(memory.limit)}\n`;
+            statusHtml += `Available: ${formatBytes(memory.limit - memory.used)}\n`;
+            
+            // Add threshold warnings
+            if (memory.used >= THRESHOLDS.CRITICAL) {
+                statusHtml += `\n<span class="critical">CRITICAL: Memory usage exceeds ${formatBytes(THRESHOLDS.CRITICAL)}</span>\n`;
+            } else if (memory.used >= THRESHOLDS.WARNING) {
+                statusHtml += `\n<span class="warning">WARNING: Memory usage exceeds ${formatBytes(THRESHOLDS.WARNING)}</span>\n`;
+            }
+            
+            if ((memory.limit - memory.used) < THRESHOLDS.MIN_FREE) {
+                statusHtml += `<span class="critical">CRITICAL: Available memory below ${formatBytes(THRESHOLDS.MIN_FREE)}</span>\n`;
+            }
+
+            status.innerHTML = statusHtml;
+            return memory;
+        }
+
+        function log(message, type = '') {
+            const testLog = document.getElementById('testLog');
+            testLog.innerHTML += `<span class="${type}">${message}</span>\n`;
+        }
+
+        // Simulate memory allocation
+        function allocateMemory(sizeMB) {
+            const array = new Array(sizeMB * 1024 * 1024 / 8).fill(0); // 8 bytes per number
+            testArrays.push(array);
+            return array;
+        }
+
+        async function loadModel(name) {
+            const before = logMemory('Before Load');
+            if (!before) return;
+
+            if (before.used >= THRESHOLDS.CRITICAL) {
+                log('REJECTED: Memory usage critical, cleanup required', 'critical');
+                return;
+            }
+
+            try {
+                // Simulate model loading with memory allocation
+                const modelSizes = {
+                    'GAMA': 50,      // 50MB
+                    'AudioLog': 40    // 40MB
+                };
+
+                log(`Loading ${name} model (${modelSizes[name]}MB)...`);
+                activeModel = allocateMemory(modelSizes[name]);
+                
+                const after = logMemory('After Load');
+                if (!after) return;
+
+                const impact = after.used - before.used;
+                log(`Model loaded - Memory impact: ${formatBytes(impact)}`, 'success');
+
+            } catch (e) {
+                log(`Error loading model: ${e.message}`, 'critical');
+            }
+        }
+
+        async function forceCleanup() {
+            const before = logMemory('Before Cleanup');
+            if (!before) return;
+
+            log('Forcing cleanup...');
+            testArrays = [];
+            activeModel = null;
+            
+            if (window.gc) {
+                try {
+                    window.gc();
+                    log('Garbage collection triggered');
+                } catch (e) {
+                    log('Manual GC not available - run Chrome with --expose-gc', 'warning');
+                }
+            }
+
+            setTimeout(() => {
+                const after = logMemory('After Cleanup');
+                if (!after) return;
+
+                const recovered = before.used - after.used;
+                log(`Cleanup complete - Recovered: ${formatBytes(recovered)}`, 'success');
+            }, 500);
+        }
+
+        // Initial memory status
+        logMemory('Initial State');
+    </script>
+</body>
+</html>

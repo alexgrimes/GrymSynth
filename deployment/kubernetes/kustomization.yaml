@@ -1,0 +1,67 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Common resources for all environments
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - storage.yaml
+  - hpa.yaml
+  - ingress.yaml
+
+# Labels to add to all resources
+commonLabels:
+  app: audio-learning-hub
+  app.kubernetes.io/name: audio-learning-hub
+  app.kubernetes.io/part-of: audio-learning-platform
+
+# Namespace to add to all resources
+namespace: audio-learning-hub
+
+# ConfigMap generator for environment-specific configurations
+configMapGenerator:
+- name: audio-learning-hub-env-config
+  behavior: merge
+  envs:
+  - ../env-templates/${ENVIRONMENT}.env
+
+# Secret generator for environment-specific secrets
+secretGenerator:
+- name: audio-learning-hub-env-secrets
+  behavior: merge
+  envs:
+  - ../env-templates/${ENVIRONMENT}.secrets.env
+
+# Patches for environment-specific customizations
+patchesStrategicMerge:
+  - overlays/${ENVIRONMENT}/deployment-patch.yaml
+  - overlays/${ENVIRONMENT}/configmap-patch.yaml
+
+# Patches for specific resources
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: audio-learning-hub
+  path: overlays/${ENVIRONMENT}/deployment-resources-patch.yaml
+
+# Variable substitution
+vars:
+- name: ENVIRONMENT
+  objref:
+    kind: ConfigMap
+    name: audio-learning-hub-env-config
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.ENVIRONMENT
+- name: DOMAIN
+  objref:
+    kind: ConfigMap
+    name: audio-learning-hub-env-config
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.DOMAIN

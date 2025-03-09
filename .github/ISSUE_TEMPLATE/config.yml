@@ -1,0 +1,44 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/yourusername/audio-learning-hub/tree/main/docs
+    about: Check our documentation for answers to common questions
+  - name: Examples
+    url: https://github.com/yourusername/audio-learning-hub/tree/main/examples
+    about: See example implementations and usage patterns
+  - name: Discussions
+    url: https://github.com/yourusername/audio-learning-hub/discussions
+    about: Ask questions and discuss with other community members
+  - name: Security Issue
+    url: https://github.com/yourusername/audio-learning-hub/security/policy
+    about: Learn how to notify us for sensitive bugs
+  - name: Code of Conduct
+    url: https://github.com/yourusername/audio-learning-hub/blob/main/CODE_OF_CONDUCT.md
+    about: Please read this before posting
+
+# Template chooser settings
+template_chooser:
+  title_labeler:
+    '[BUG]': 'bug'
+    '[FEATURE]': 'enhancement'
+    '[DOCS]': 'documentation'
+    '[PERF]': 'performance'
+    '[TEST]': 'testing'
+    '[CI]': 'ci'
+    '[SECURITY]': 'security'
+
+  body_labeler:
+    'performance': 'performance'
+    'memory leak': 'memory'
+    'breaking change': 'breaking'
+    'security': 'security'
+    'documentation': 'documentation'
+    'test': 'testing'
+
+  include:
+    - bug_report.md
+    - feature_request.md
+
+  exclude:
+    - '.*draft.*'
+    - '.*WIP.*'

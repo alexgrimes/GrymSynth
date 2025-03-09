@@ -1,0 +1,100 @@
+{
+  "name": "GrymSynth",
+  "version": "1.0.0",
+  "description": "A learning system for audio pattern recognition and analysis",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test:system": "jest --config=jest.config.js src/tests/system",
+    "test:system:full": "jest --config=jest.config.js src/tests/system/full-system.test.ts",
+    "test:system:load": "node src/tests/system/load-testing.ts",
+    "test:system:reliability": "node src/tests/system/reliability-testing.ts",
+    "test:system:error": "jest --config=jest.config.js src/tests/system/error-recovery.test.ts",
+    "test:uat": "node src/tests/uat/run-scenarios.js",
+    "test:uat:report": "node src/tests/uat/generate-reports.js",
+    "test:performance": "node src/tests/performance/run-all.js",
+    "test:performance:benchmark": "node src/tests/performance/end-to-end-benchmark.ts",
+    "test:performance:visualization": "node src/tests/performance/visualization-performance.ts",
+    "test:performance:memory": "node src/tests/performance/memory-usage-test.ts",
+    "test:performance:throughput": "node src/tests/performance/throughput-test.ts",
+    "build": "tsc",
+    "test": "jest --config=jest.config.js",
+    "test:watch": "jest --config=jest.config.js --watch",
+    "test:coverage": "jest --config=jest.config.js --coverage",
+    "test:perf": "jest --config=jest.config.js --testMatch='**/*.perf.test.ts'",
+    "test:integration": "jest --config=jest.config.js --testMatch='**/*.integration.test.ts'",
+    "test:system": "jest --config=jest.config.js --testMatch='**/tests/system/**/*.test.ts'",
+    "test:system:full": "jest --config=jest.config.js --testMatch='**/tests/system/full-system.test.ts'",
+    "test:system:error": "jest --config=jest.config.js --testMatch='**/tests/system/error-recovery.test.ts'",
+    "test:performance": "node scripts/run-performance-tests.js",
+    "test:uat": "node scripts/run-uat.js",
+    "test:all": "npm run test:system && npm run test:performance && npm run test:uat",
+    "lint": "eslint 'src/**/*.{js,ts}'",
+    "clean": "cross-env NODE_ENV=production node scripts/cleanup.js",
+    "prebuild": "npm run clean",
+    "prepare": "npm run build",
+    "example": "cd examples && npm start",
+    "example:debug": "cd examples && npm run debug",
+    "example:build": "cd examples && npm run build",
+    "postinstall": "cd examples && npm install",
+    "reset": "npm run clean && npm ci && npm run build",
+    "start": "npm run example",
+    "dev": "npm run example:debug",
+    "setup": "./scripts/setup.sh",
+    "setup:minimal": "./scripts/setup.sh --minimal",
+    "assets:download": "node dist/scripts/download-assets.js",
+    "assets:download:minimal": "node dist/scripts/download-assets.js --minimal",
+    "assets:identify": "./scripts/identify-large-files.sh",
+    "assets:clean": "./scripts/clean-repo.sh",
+    "dev:minimal": "npm run assets:download:minimal && npm run dev"
+  },
+  "keywords": [
+    "audio",
+    "machine-learning",
+    "pattern-recognition",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/types": "^29.6.3",
+    "@types/jest": "^29.5.6",
+    "@types/node": "^18.18.6",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
+    "@typescript-eslint/parser": "^6.8.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.51.0",
+    "jest": "^29.7.0",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.0.4",
+    "@react-three/fiber": "^9.0.4",
+    "@reduxjs/toolkit": "^2.6.1",
+    "@types/rimraf": "^4.0.5",
+    "commander": "^13.1.0",
+    "react-redux": "^9.2.0",
+    "three": "^0.174.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist",
+    "src",
+    "examples",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexgrimes/GrymSynth.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexgrimes/GrymSynth/issues"
+  }
+}

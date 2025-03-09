@@ -1,0 +1,127 @@
+name: Test Infrastructure
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/lib/testing/**'
+      - '.github/workflows/test.yml'
+      - 'package.json'
+      - 'jest.config.js'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/lib/testing/**'
+      - '.github/workflows/test.yml'
+      - 'package.json'
+      - 'jest.config.js'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Set up test environment
+      run: |
+        chmod +x src/lib/testing/*.sh
+        node src/lib/testing/setup-test-env.ts
+
+    - name: Run error handling tests
+      run: npm run test:error -- --coverage
+      
+    - name: Run infrastructure tests
+      run: npm run test:infra -- --coverage
+
+    - name: Generate test report
+      run: npm run test:error -- report
+      if: always()
+
+    - name: Upload error handling coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: error-handling-coverage
+        path: coverage/error-handling
+      if: always()
+
+    - name: Upload infrastructure coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: infrastructure-coverage
+        path: coverage/test-infrastructure
+      if: always()
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-report
+        path: |
+          src/lib/testing/test-output.json
+          src/lib/testing/test-report.html
+      if: always()
+
+  analyze:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download all coverage reports
+      uses: actions/download-artifact@v3
+
+    - name: Combine coverage reports
+      run: |
+        npm install -g istanbul-combine
+        istanbul-combine -d coverage-combined \
+          error-handling-coverage/coverage-final.json \
+          infrastructure-coverage/coverage-final.json
+
+    - name: Upload combined coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: combined-coverage
+        path: coverage-combined
+
+    - name: Check coverage thresholds
+      run: |
+        if [ -f coverage-combined/coverage-summary.json ]; then
+          COVERAGE=$(jq '.total.lines.pct' coverage-combined/coverage-summary.json)
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "Coverage below threshold: $COVERAGE%"
+            exit 1
+          fi
+          echo "Coverage OK: $COVERAGE%"
+        else
+          echo "No coverage report found"
+          exit 1
+        fi
+
+  notify:
+    needs: [test, analyze]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Check workflow status
+      run: |
+        if [ "${{ needs.test.result }}" != "success" ] || [ "${{ needs.analyze.result }}" != "success" ]; then
+          echo "Tests or analysis failed"
+          exit 1
+        fi
+        echo "All checks passed"

@@ -1,0 +1,7 @@
+{
+  "exitCode": 1,
+  "stdout": "Starting standalone tests...\n\nRunning test: Simple Addition ... ✓ PASS\nRunning test: Array Operations ... ✓ PASS\nRunning test: Audio Buffer Creation ... ✓ PASS\nRunning test: Sine Wave Generation ... ✗ FAIL\n\n=== Test Results ===\nTotal tests: 4\nPassed: 3\nFailed: 1\n",
+  "stderr": "Sine wave generation failed\n",
+  "timestamp": "2025-03-06T09:48:53.720Z",
+  "nodeVersion": "v22.12.0"
+}

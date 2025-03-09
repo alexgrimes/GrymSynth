@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Memory Profiler</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; }
+        pre { background: #f5f5f5; padding: 10px; }
+        .measurement { margin-bottom: 20px; }
+        .phase { color: #666; }
+        .number { color: #0066cc; }
+    </style>
+</head>
+<body>
+    <h2>Model Memory Profiler</h2>
+    
+    <div id="controls">
+        <button onclick="runBaselineMeasurement()">Measure Baseline</button>
+        <button onclick="profileGAMA()">Profile GAMA</button>
+        <button onclick="profileAudioLog()">Profile AudioLog</button>
+        <button onclick="measureHandoff()">Test Model Handoff</button>
+        <button onclick="processAudio()">Test Audio Processing</button>
+    </div>
+
+    <div id="status"></div>
+    <pre id="measurements"></pre>
+
+    <script>
+        class ModelMemoryProfiler {
+            constructor() {
+                this.snapshots = [];
+                this.activeModel = null;
+                this.measurements = document.getElementById('measurements');
+                this.status = document.getElementById('status');
+            }
+
+            formatMemory(bytes) {
+                return `${Math.round(bytes / 1024 / 1024)}MB`;
+            }
+
+            takeSnapshot(label) {
+                if (!performance.memory) {
+                    throw new Error('Memory API not available - run Chrome with --enable-precise-memory-info');
+                }
+
+                const snapshot = {
+                    label,
+                    timestamp: Date.now(),
+                    heapUsed: performance.memory.usedJSHeapSize,
+                    heapTotal: performance.memory.totalJSHeapSize,
+                    heapLimit: performance.memory.jsHeapSizeLimit
+                };
+
+                this.snapshots.push(snapshot);
+                return snapshot;
+            }
+
+            getMemoryDiff(beforeLabel, afterLabel) {
+                const before = this.snapshots.find(s => s.label === beforeLabel);
+                const after = this.snapshots.find(s => s.label === afterLabel);
+                
+                if (!before || !after) return null;
+
+                return {
+                    heapUsedDiff: after.heapUsed - before.heapUsed,
+                    heapTotalDiff: after.heapTotal - before.heapTotal
+                };
+            }
+
+            async measureBaseline() {
+                this.log('Measuring baseline memory usage...');
+                
+                // Clear any previous state
+                this.snapshots = [];
+                this.activeModel = null;
+
+                if (window.gc) {
+                    try {
+                        window.gc();
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    } catch (e) {
+                        this.log('Warning: Manual GC not available');
+                    }
+                }
+
+                const baseline = this.takeSnapshot('baseline');
+                
+                this.logMeasurement('Baseline Memory', {
+                    heapUsed: baseline.heapUsed,
+                    heapTotal: baseline.heapTotal,
+                    available: baseline.heapLimit - baseline.heapUsed
+                });
+
+                return baseline;
+            }
+
+            async profileModel(modelName) {
+                await this.measureBaseline();
+                
+                this.log(`Profiling ${modelName} model...`);
+
+                // Pre-load snapshot
+                this.takeSnapshot(`${modelName}-pre-load`);
+
+                // Simulate model loading with actual memory allocation
+                const modelSizes = {
+                    'GAMA': 50 * 1024 * 1024,      // Initial estimate: 50MB
+                    'AudioLog': 40 * 1024 * 1024    // Initial estimate: 40MB
+                };
+
+                // Allocate memory to simulate model
+                this.activeModel = new Array(modelSizes[modelName] / 8).fill(0);
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Post-load snapshot
+                const postLoad = this.takeSnapshot(`${modelName}-post-load`);
+
+                // Simulate some audio processing
+                await this.simulateAudioProcessing(modelName);
+                const postProcess = this.takeSnapshot(`${modelName}-post-process`);
+
+                const loadImpact = this.getMemoryDiff(`${modelName}-pre-load`, `${modelName}-post-load`);
+                const processImpact = this.getMemoryDiff(`${modelName}-post-load`, `${modelName}-post-process`);
+
+                this.logMeasurement(`${modelName} Memory Profile`, {
+                    loadImpact: loadImpact.heapUsedDiff,
+                    processImpact: processImpact.heapUsedDiff,
+                    peakUsage: Math.max(postLoad.heapUsed, postProcess.heapUsed),
+                    steadyState: postProcess.heapUsed
+                });
+
+                await this.cleanup();
+                return { loadImpact, processImpact };
+            }
+
+            async measureHandoff() {
+                await this.measureBaseline();
+                
+                this.log('Measuring model handoff memory patterns...');
+
+                // Load GAMA
+                this.takeSnapshot('handoff-start');
+                await this.profileModel('GAMA');
+                const gamaLoaded = this.takeSnapshot('gama-loaded');
+
+                // Load AudioLog while GAMA is still in memory
+                await this.profileModel('AudioLog');
+                const bothLoaded = this.takeSnapshot('both-loaded');
+
+                // Measure peak and steady state
+                const peakUsage = Math.max(...this.snapshots.map(s => s.heapUsed));
+                
+                this.logMeasurement('Handoff Memory Profile', {
+                    peakDuringHandoff: peakUsage,
+                    concurrentUsage: bothLoaded.heapUsed,
+                    handoffOverhead: bothLoaded.heapUsed - gamaLoaded.heapUsed
+                });
+
+                await this.cleanup();
+            }
+
+            async simulateAudioProcessing(modelName) {
+                this.log(`Simulating audio processing with ${modelName}...`);
+                
+                // Allocate temporary buffers to simulate audio processing
+                const audioBuffers = [];
+                const bufferCount = modelName === 'GAMA' ? 4 : 2; // GAMA needs more buffers
+                
+                for (let i = 0; i < bufferCount; i++) {
+                    audioBuffers.push(new Float32Array(16000)); // 1 second of audio at 16kHz
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                // Simulate processing
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Clear temporary buffers
+                audioBuffers.length = 0;
+            }
+
+            async cleanup() {
+                this.log('Cleaning up...');
+                
+                this.activeModel = null;
+                
+                if (window.gc) {
+                    try {
+                        window.gc();
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    } catch (e) {
+                        this.log('Warning: Manual GC not available');
+                    }
+                }
+
+                const finalSnapshot = this.takeSnapshot('post-cleanup');
+                return finalSnapshot;
+            }
+
+            log(message) {
+                this.status.textContent = message;
+                console.log(message);
+            }
+
+            logMeasurement(label, data) {
+                const format = (bytes) => this.formatMemory(bytes);
+                
+                let output = `\n=== ${label} ===\n`;
+                for (const [key, value] of Object.entries(data)) {
+                    output += `${key}: ${format(value)}\n`;
+                }
+                
+                this.measurements.textContent += output;
+            }
+        }
+
+        const profiler = new ModelMemoryProfiler();
+
+        async function runBaselineMeasurement() {
+            await profiler.measureBaseline();
+        }
+
+        async function profileGAMA() {
+            await profiler.profileModel('GAMA');
+        }
+
+        async function profileAudioLog() {
+            await profiler.profileModel('AudioLog');
+        }
+
+        async function measureHandoff() {
+            await profiler.measureHandoff();
+        }
+
+        async function processAudio() {
+            if (!profiler.activeModel) {
+                profiler.log('Error: No active model. Load a model first.');
+                return;
+            }
+            await profiler.simulateAudioProcessing(profiler.activeModel);
+        }
+
+        // Initial baseline
+        runBaselineMeasurement();
+    </script>
+</body>
+</html>

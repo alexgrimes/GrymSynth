@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Server Memory Profiler</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; }
+        pre { background: #f5f5f5; padding: 10px; }
+        .measurement { margin-bottom: 20px; }
+        .phase { color: #666; }
+        .number { color: #0066cc; }
+        .error { color: #cc0000; }
+        .success { color: #00cc00; }
+    </style>
+</head>
+<body>
+    <h2>Model Server Memory Profiler</h2>
+    
+    <div id="config">
+        <h3>Server Configuration</h3>
+        <div>
+            <label>Ollama URL:</label>
+            <input type="text" id="ollamaUrl" value="http://localhost:11434" />
+        </div>
+        <div>
+            <label>LM Studio URL:</label>
+            <input type="text" id="lmStudioUrl" value="http://localhost:1234" />
+        </div>
+    </div>
+
+    <div id="controls">
+        <h3>Test Controls</h3>
+        <button onclick="measureBaseline()">Measure Baseline</button>
+        <button onclick="profileGAMA()">Profile GAMA (Ollama)</button>
+        <button onclick="profileAudioLog()">Profile AudioLog (LM Studio)</button>
+        <button onclick="testHandoff()">Test Model Handoff</button>
+        <button onclick="testAudioProcessing()">Test Audio Processing</button>
+    </div>
+
+    <h3>Status</h3>
+    <div id="status"></div>
+
+    <h3>Memory Profile</h3>
+    <pre id="measurements"></pre>
+
+    <script>
+        class ModelServerProfiler {
+            constructor() {
+                this.snapshots = [];
+                this.measurements = document.getElementById('measurements');
+                this.status = document.getElementById('status');
+                this.activeModel = null;
+            }
+
+            formatBytes(bytes) {
+                return `${Math.round(bytes / 1024 / 1024)}MB`;
+            }
+
+            updateStatus(message, type = 'info') {
+                this.status.innerHTML += `<div class="${type}">${message}</div>`;
+                console.log(`[${type}] ${message}`);
+            }
+
+            takeSnapshot(label) {
+                if (!performance.memory) {
+                    throw new Error('Memory API not available - run Chrome with --enable-precise-memory-info');
+                }
+
+                const snapshot = {
+                    label,
+                    timestamp: Date.now(),
+                    heapUsed: performance.memory.usedJSHeapSize,
+                    heapTotal: performance.memory.totalJSHeapSize,
+                    heapLimit: performance.memory.jsHeapSizeLimit
+                };
+
+                this.snapshots.push(snapshot);
+                return snapshot;
+            }
+
+            logMeasurement(label, data) {
+                const formatNum = (bytes) => this.formatBytes(bytes);
+                
+                let output = `\n=== ${label} ===\n`;
+                for (const [key, value] of Object.entries(data)) {
+                    output += `${key}: ${formatNum(value)}\n`;
+                }
+                
+                this.measurements.textContent += output;
+            }
+
+            async measureBaseline() {
+                this.updateStatus('Measuring baseline memory usage...');
+                
+                // Clear any previous state
+                this.snapshots = [];
+                this.activeModel = null;
+
+                if (window.gc) {
+                    try {
+                        window.gc();
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    } catch (e) {
+                        this.updateStatus('Warning: Manual GC not available', 'error');
+                    }
+                }
+
+                const baseline = this.takeSnapshot('baseline');
+                
+                this.logMeasurement('Baseline Memory', {
+                    heapUsed: baseline.heapUsed,
+                    heapTotal: baseline.heapTotal,
+                    available: baseline.heapLimit - baseline.heapUsed
+                });
+
+                return baseline;
+            }
+
+            async testModelServer(serverType, modelName) {
+                this.updateStatus(`Testing ${serverType} server for ${modelName}...`);
+                
+                const url = serverType === 'ollama' 
+                    ? document.getElementById('ollamaUrl').value
+                    : document.getElementById('lmStudioUrl').value;
+
+                try {
+                    // Take pre-request snapshot
+                    const before = this.takeSnapshot(`${modelName}-pre-request`);
+
+                    // Test server connection
+                    const response = await fetch(`${url}/api/health`);
+                    if (!response.ok) {
+                        throw new Error(`Server health check failed: ${response.status}`);
+                    }
+
+                    this.updateStatus(`${serverType} server is responsive`, 'success');
+
+                    // Simple inference test
+                    const inferenceStart = this.takeSnapshot(`${modelName}-inference-start`);
+                    
+                    // Simulate audio processing load
+                    const audioBuffer = new Float32Array(16000); // 1 second at 16kHz
+                    const processingSnapshot = this.takeSnapshot(`${modelName}-processing`);
+
+                    return {
+                        serverReady: true,
+                        memoryImpact: {
+                            connection: this.takeSnapshot(`${modelName}-connected`).heapUsed - before.heapUsed,
+                            processing: processingSnapshot.heapUsed - inferenceStart.heapUsed
+                        }
+                    };
+
+                } catch (error) {
+                    this.updateStatus(`Failed to connect to ${serverType} server: ${error.message}`, 'error');
+                    return {
+                        serverReady: false,
+                        error: error.message
+                    };
+                }
+            }
+
+            async profileModel(serverType, modelName) {
+                await this.measureBaseline();
+                
+                this.updateStatus(`Profiling ${modelName} via ${serverType}...`);
+
+                const result = await this.testModelServer(serverType, modelName);
+                
+                if (!result.serverReady) {
+                    this.logMeasurement(`${modelName} Profile Failed`, {
+                        error: result.error
+                    });
+                    return null;
+                }
+
+                this.logMeasurement(`${modelName} Memory Impact`, {
+                    connectionOverhead: result.memoryImpact.connection,
+                    processingOverhead: result.memoryImpact.processing,
+                    totalImpact: result.memoryImpact.connection + result.memoryImpact.processing
+                });
+
+                return result;
+            }
+
+            async testHandoff() {
+                await this.measureBaseline();
+                
+                this.updateStatus('Testing model handoff...');
+
+                // Test GAMA -> AudioLog handoff
+                const gamaResult = await this.profileModel('ollama', 'GAMA');
+                if (!gamaResult?.serverReady) return;
+
+                const handoffStart = this.takeSnapshot('handoff-start');
+                
+                const audioLogResult = await this.profileModel('lmstudio', 'AudioLog');
+                if (!audioLogResult?.serverReady) return;
+
+                const handoffEnd = this.takeSnapshot('handoff-end');
+
+                this.logMeasurement('Handoff Impact', {
+                    peakMemory: Math.max(...this.snapshots.map(s => s.heapUsed)),
+                    handoffOverhead: handoffEnd.heapUsed - handoffStart.heapUsed
+                });
+            }
+
+            async testAudioProcessing() {
+                const before = this.takeSnapshot('audio-pre');
+
+                // Create audio processing load
+                const audioBuffer = new Float32Array(16000 * 10); // 10 seconds at 16kHz
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createBufferSource();
+                
+                // Process audio data
+                const processingStart = this.takeSnapshot('processing-start');
+                
+                // Simulate audio processing
+                for (let i = 0; i < 10; i++) {
+                    const buffer = audioContext.createBuffer(1, 16000, 16000);
+                    this.takeSnapshot(`processing-chunk-${i}`);
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+
+                const after = this.takeSnapshot('audio-post');
+
+                this.logMeasurement('Audio Processing Impact', {
+                    setupOverhead: processingStart.heapUsed - before.heapUsed,
+                    processingOverhead: after.heapUsed - processingStart.heapUsed,
+                    totalImpact: after.heapUsed - before.heapUsed
+                });
+
+                await audioContext.close();
+            }
+        }
+
+        const profiler = new ModelServerProfiler();
+
+        async function measureBaseline() {
+            await profiler.measureBaseline();
+        }
+
+        async function profileGAMA() {
+            await profiler.profileModel('ollama', 'GAMA');
+        }
+
+        async function profileAudioLog() {
+            await profiler.profileModel('lmstudio', 'AudioLog');
+        }
+
+        async function testHandoff() {
+            await profiler.testHandoff();
+        }
+
+        async function testAudioProcessing() {
+            await profiler.testAudioProcessing();
+        }
+
+        // Initial baseline
+        measureBaseline();
+    </script>
+</body>
+</html>

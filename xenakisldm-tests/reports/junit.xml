@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="0" failures="0" errors="1" time="0.403">
+  <testsuite name="tests\sanity.test.js" errors="1" failures="0" skipped="0" timestamp="1970-01-01T00:00:00" time="0" tests="0">
+    <testcase classname="Test suite failed to run" name="tests\sanity.test.js" time="0">
+      <error>  ● Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default &quot;node_modules&quot; folder is ignored by transformers.
+
+    Here&apos;s what you can do:
+     • If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     • If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     • To have some of your &quot;node_modules&quot; files transformed, you can specify a custom &quot;transformIgnorePatterns&quot; in your config.
+     • If you need a custom transformation specify a &quot;transform&quot; option in your config.
+     • If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the &quot;moduleNameMapper&quot; config option.
+
+    You&apos;ll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    C:\Users\alex\testing-browser\audio-learning-hub\xenakisldm-tests\tests\setup.ts:5
+      toBeWithinRange(received: number, floor: number, ceiling: number) {
+                              ^
+
+    SyntaxError: Unexpected token &apos;:&apos;
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)
+</error>
+    </testcase>
+    <testcase classname="Test suite failed to run" name="tests\sanity.test.js" time="0">
+      <failure>{}</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

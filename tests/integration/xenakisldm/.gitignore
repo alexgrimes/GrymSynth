@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build artifacts
+dist/
+*.js
+*.js.map
+*.d.ts
+
+# Test artifacts
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Environment
+.env
+.env.test
+
+# OS specific
+.DS_Store
+Thumbs.db

@@ -1,0 +1,27 @@
+{
+  "results": {
+    "passed": 3,
+    "failed": 1,
+    "tests": [
+      {
+        "name": "Simple Addition",
+        "passed": true
+      },
+      {
+        "name": "Array Operations",
+        "passed": true
+      },
+      {
+        "name": "Audio Buffer Creation",
+        "passed": true
+      },
+      {
+        "name": "Sine Wave Generation",
+        "passed": false
+      }
+    ]
+  },
+  "timestamp": "2025-03-06T09:48:53.706Z",
+  "nodeVersion": "v22.12.0",
+  "platform": "win32"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "xenakisldm-minimal-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "jest --config jest.config.simple.js --verbose",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --config jest.config.simple.js --runInBand --verbose"
+  },
+  "dependencies": {
+    "jest": "^29.5.0"
+  },
+  "devDependencies": {},
+  "jest": {
+    "testEnvironment": "node",
+    "verbose": true,
+    "collectCoverage": false
+  }
+}

@@ -1,0 +1,291 @@
+name: Release Workflow
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (without v prefix)'
+        required: true
+        type: string
+
+jobs:
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      tag: ${{ steps.get-version.outputs.tag }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Get version from tag or input
+      id: get-version
+      run: |
+        if [ "${{ github.event_name }}" == "push" ]; then
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#v}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        else
+          VERSION="${{ github.event.inputs.version }}"
+          TAG="v$VERSION"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Validate version
+      run: |
+        if ! [[ "${{ steps.get-version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+          echo "::error::Invalid version format. Must be in semver format (e.g., 1.2.3 or 1.2.3-beta.1)"
+          exit 1
+        fi
+
+  build:
+    name: Build Release
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build
+      run: npm run build
+
+    - name: Run tests
+      run: npm test
+
+    - name: Create release package
+      run: |
+        mkdir -p release
+        cp -r dist release/
+        cp -r examples release/
+        cp README.md LICENSE CHANGELOG.md release/
+        cd release && zip -r ../audio-learning-hub-${{ needs.prepare.outputs.version }}.zip .
+
+    - name: Upload release package
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-package
+        path: audio-learning-hub-${{ needs.prepare.outputs.version }}.zip
+
+  docker:
+    name: Build and Tag Docker Image
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          yourusername/audio-learning-hub:${{ needs.prepare.outputs.version }}
+          yourusername/audio-learning-hub:${{ needs.prepare.outputs.tag }}
+          yourusername/audio-learning-hub:latest
+        build-args: |
+          NODE_ENV=production
+          VERSION=${{ needs.prepare.outputs.version }}
+        cache-from: type=registry,ref=yourusername/audio-learning-hub:buildcache
+        cache-to: type=registry,ref=yourusername/audio-learning-hub:buildcache,mode=max
+
+  npm:
+    name: Publish to NPM
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Verify package version
+      run: |
+        PKG_VERSION=$(node -p "require('./package.json').version")
+        if [ "$PKG_VERSION" != "${{ needs.prepare.outputs.version }}" ]; then
+          echo "::error::Package version ($PKG_VERSION) does not match tag version (${{ needs.prepare.outputs.version }})"
+          exit 1
+        fi
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build
+      run: npm run build
+
+    - name: Publish to NPM
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  release-notes:
+    name: Generate Release Notes
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Find the previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+        if [ -z "$PREV_TAG" ]; then
+          # If no previous tag, use all commits
+          echo "No previous tag found, using all commits"
+          CHANGELOG=$(git log --pretty=format:"* %s (%an)" --reverse)
+        else
+          echo "Previous tag: $PREV_TAG"
+          CHANGELOG=$(git log --pretty=format:"* %s (%an)" --reverse $PREV_TAG..HEAD)
+        fi
+
+        # Escape newlines for GitHub Actions output
+        CHANGELOG="${CHANGELOG//'%'/'%25'}"
+        CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+        CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Extract release notes from CHANGELOG.md
+      id: extract-notes
+      run: |
+        VERSION_HEADER="## \[${{ needs.prepare.outputs.version }}\]"
+        NEXT_VERSION_PATTERN="## \["
+
+        # Extract content between current version header and next version header
+        RELEASE_NOTES=$(awk -v version="$VERSION_HEADER" -v next_pattern="$NEXT_VERSION_PATTERN" '
+          $0 ~ version {flag=1; next}
+          flag && $0 ~ next_pattern {flag=0}
+          flag {print}
+        ' CHANGELOG.md)
+
+        # If no specific release notes found, use generated changelog
+        if [ -z "$RELEASE_NOTES" ]; then
+          RELEASE_NOTES="${{ steps.changelog.outputs.changelog }}"
+        fi
+
+        # Escape newlines for GitHub Actions output
+        RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
+        RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
+        RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
+
+        echo "notes<<EOF" >> $GITHUB_OUTPUT
+        echo "$RELEASE_NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create release notes file
+      run: |
+        echo "${{ steps.extract-notes.outputs.notes }}" > release-notes.md
+
+    - name: Upload release notes
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-notes
+        path: release-notes.md
+
+  github-release:
+    name: Create GitHub Release
+    needs: [prepare, build, docker, npm, release-notes]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Download release package
+      uses: actions/download-artifact@v3
+      with:
+        name: release-package
+
+    - name: Download release notes
+      uses: actions/download-artifact@v3
+      with:
+        name: release-notes
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ needs.prepare.outputs.tag }}
+        name: Release ${{ needs.prepare.outputs.version }}
+        body_path: release-notes.md
+        draft: false
+        prerelease: ${{ contains(needs.prepare.outputs.version, '-') }}
+        files: |
+          audio-learning-hub-${{ needs.prepare.outputs.version }}.zip
+          LICENSE
+          README.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: Notify Team
+    needs: [prepare, github-release]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Notify on Slack
+      uses: slackapi/slack-github-action@v1.23.0
+      with:
+        channel-id: 'releases'
+        slack-message: "🎉 *New Release*: Audio Learning Hub v${{ needs.prepare.outputs.version }} has been released! Check it out at https://github.com/yourusername/audio-learning-hub/releases/tag/${{ needs.prepare.outputs.tag }}"
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+    - name: Send email notification
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.MAIL_SERVER }}
+        server_port: ${{ secrets.MAIL_PORT }}
+        username: ${{ secrets.MAIL_USERNAME }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        subject: "Audio Learning Hub v${{ needs.prepare.outputs.version }} Released"
+        body: |
+          A new version of Audio Learning Hub has been released!
+
+          Version: ${{ needs.prepare.outputs.version }}
+          Release URL: https://github.com/yourusername/audio-learning-hub/releases/tag/${{ needs.prepare.outputs.tag }}
+
+          Check the release notes for details on what's new in this version.
+        to: team@example.com
+        from: GitHub Actions <actions@example.com>

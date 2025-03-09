@@ -1,0 +1,18 @@
+# Core ML stack - install torch separately from wheels
+transformers==4.26.0
+accelerate==0.16.0
+
+# Audio processing
+librosa>=0.9.0
+soundfile>=0.10.0
+
+# Numerical processing
+numpy<2.0
+
+# System monitoring
+psutil>=5.9.0
+
+# Note: PyTorch wheels should be installed first:
+# pip install pytorch_wheels/torch-1.13.1+cu116-cp39-cp39-win_amd64.whl
+# pip install pytorch_wheels/torchvision-0.14.1+cu116-cp39-cp39-win_amd64.whl
+# pip install pytorch_wheels/torchaudio-0.13.1+cu116-cp39-cp39-win_amd64.whl

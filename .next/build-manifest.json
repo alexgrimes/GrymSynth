@@ -1,0 +1,40 @@
+{
+  "pages": {
+    "/_app": [
+      "static/chunks/[root of the server]__79e392._.js",
+      "static/chunks/545c3_react-dom_1c85ba._.js",
+      "static/chunks/node_modules__pnpm_f84813._.js",
+      "static/chunks/[root of the server]__f265a1._.js",
+      "static/chunks/pages__app_5771e1._.js",
+      "static/chunks/pages__app_440438._.js"
+    ],
+    "/_error": [
+      "static/chunks/[root of the server]__f539a6._.js",
+      "static/chunks/545c3_react-dom_1c85ba._.js",
+      "static/chunks/node_modules__pnpm_f84813._.js",
+      "static/chunks/[root of the server]__2e1cf5._.js",
+      "static/chunks/pages__error_5771e1._.js",
+      "static/chunks/pages__error_9e9928._.js"
+    ]
+  },
+  "devFiles": [],
+  "ampDevFiles": [],
+  "polyfillFiles": [
+    "static/chunks/b3555_next_dist_build_polyfills_polyfill-nomodule.js"
+  ],
+  "lowPriorityFiles": [
+    "static/development/_ssgManifest.js",
+    "static/development/_buildManifest.js"
+  ],
+  "rootMainFiles": [
+    "static/chunks/b3555_next_dist_compiled_react-dom_e6edc4._.js",
+    "static/chunks/b3555_next_dist_compiled_c03c4c._.js",
+    "static/chunks/b3555_next_dist_client_8792b3._.js",
+    "static/chunks/b3555_next_dist_09274e._.js",
+    "static/chunks/61dca_@swc_helpers_cjs_e27e0a._.js",
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_e24580._.js",
+    "static/chunks/_e69f0d._.js",
+    "static/chunks/_d561ab._.js"
+  ],
+  "ampFirstPages": []
+}

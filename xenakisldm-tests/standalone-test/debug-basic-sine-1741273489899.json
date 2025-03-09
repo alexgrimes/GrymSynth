@@ -1,0 +1,31 @@
+{
+  "params": {
+    "frequency": 440,
+    "sampleRate": 44100,
+    "duration": 1,
+    "length": 44100
+  },
+  "keyPoints": {
+    "quarterCycle": 25,
+    "halfCycle": 50,
+    "fullCycle": 100,
+    "values": {
+      "start": 0,
+      "quarter": 0.9999936819076538,
+      "half": 0.007123732473701239,
+      "full": -0.014247103594243526
+    }
+  },
+  "statistics": {
+    "min": -0.9999997615814209,
+    "max": 0.9999997615814209,
+    "zeroCrossings": 880
+  },
+  "expected": {
+    "frequency": 440,
+    "samplesPerCycle": 100.22727272727273,
+    "expectedZeroCrossings": 880,
+    "expectedQuarterCycleValue": 1,
+    "expectedHalfCycleValue": 0
+  }
+}

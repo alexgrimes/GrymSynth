@@ -1,0 +1,261 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (leave empty for latest)'
+        required: false
+        type: string
+
+jobs:
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+      environment: ${{ steps.set-environment.outputs.environment }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set environment
+      id: set-environment
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+        else
+          echo "environment=staging" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set version
+      id: set-version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Validate version
+      run: |
+        if [ -z "${{ steps.set-version.outputs.version }}" ]; then
+          echo "::error::Invalid version"
+          exit 1
+        fi
+
+  build:
+    name: Build Docker Image
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      id: build-image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          yourusername/audio-learning-hub:${{ needs.prepare.outputs.version }}
+          yourusername/audio-learning-hub:${{ needs.prepare.outputs.environment }}
+        build-args: |
+          NODE_ENV=${{ needs.prepare.outputs.environment }}
+        cache-from: type=registry,ref=yourusername/audio-learning-hub:buildcache
+        cache-to: type=registry,ref=yourusername/audio-learning-hub:buildcache,mode=max
+
+    - name: Output image details
+      run: |
+        echo "Built and pushed image: yourusername/audio-learning-hub:${{ needs.prepare.outputs.version }}"
+        echo "image=yourusername/audio-learning-hub:${{ needs.prepare.outputs.version }}" >> $GITHUB_OUTPUT
+
+  security-scan:
+    name: Security Scan
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Scan Docker image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: yourusername/audio-learning-hub:${{ needs.prepare.outputs.version }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Check for critical vulnerabilities
+      run: |
+        CRITICAL_COUNT=$(grep -c "CRITICAL" trivy-results.sarif || true)
+        if [ "$CRITICAL_COUNT" -gt 0 ]; then
+          echo "::warning::Found $CRITICAL_COUNT critical vulnerabilities"
+        fi
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [prepare, build, security-scan]
+    if: needs.prepare.outputs.environment == 'staging' || needs.prepare.outputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Set up Kubernetes config
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBE_CONFIG_STAGING }}" > $HOME/.kube/config
+        chmod 600 $HOME/.kube/config
+
+    - name: Update deployment image
+      run: |
+        kubectl set image deployment/audio-learning-hub audio-learning-hub=yourusername/audio-learning-hub:${{ needs.prepare.outputs.version }} -n audio-learning-hub
+
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/audio-learning-hub -n audio-learning-hub --timeout=300s
+
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests against staging environment"
+        npm install -g newman
+        newman run tests/api/smoke-tests.json --environment tests/api/environments/staging.json
+
+    - name: Notify on staging deployment
+      uses: slackapi/slack-github-action@v1.23.0
+      with:
+        channel-id: 'deployments'
+        slack-message: "Deployed version ${{ needs.prepare.outputs.version }} to staging environment :rocket:"
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+  approval:
+    name: Production Approval
+    needs: [prepare, deploy-staging]
+    if: needs.prepare.outputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment:
+      name: production-approval
+      url: https://staging.audio-learning-hub.example.com
+
+    steps:
+    - name: Awaiting approval
+      run: |
+        echo "Awaiting manual approval for production deployment of version ${{ needs.prepare.outputs.version }}"
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [prepare, build, security-scan, approval]
+    if: needs.prepare.outputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Set up Kubernetes config
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" > $HOME/.kube/config
+        chmod 600 $HOME/.kube/config
+
+    - name: Update deployment image
+      run: |
+        kubectl set image deployment/audio-learning-hub audio-learning-hub=yourusername/audio-learning-hub:${{ needs.prepare.outputs.version }} -n audio-learning-hub
+
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/audio-learning-hub -n audio-learning-hub --timeout=300s
+
+    - name: Run validation tests
+      run: |
+        echo "Running validation tests against production environment"
+        npm install -g newman
+        newman run tests/api/validation-tests.json --environment tests/api/environments/production.json
+
+    - name: Create deployment tag
+      run: |
+        git tag "deploy-${{ needs.prepare.outputs.version }}-$(date +'%Y%m%d%H%M%S')"
+        git push origin "deploy-${{ needs.prepare.outputs.version }}-$(date +'%Y%m%d%H%M%S')"
+
+    - name: Notify on production deployment
+      uses: slackapi/slack-github-action@v1.23.0
+      with:
+        channel-id: 'deployments'
+        slack-message: "🚀 *PRODUCTION DEPLOYMENT*: Version ${{ needs.prepare.outputs.version }} has been deployed to production!"
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+  metrics:
+    name: Collect Deployment Metrics
+    needs: [prepare, deploy-staging, deploy-production]
+    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Calculate deployment time
+      run: |
+        WORKFLOW_START_TIME=$(jq -r '.created_at' $GITHUB_EVENT_PATH)
+        CURRENT_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        START_SECONDS=$(date -d "$WORKFLOW_START_TIME" +%s)
+        END_SECONDS=$(date -d "$CURRENT_TIME" +%s)
+        DURATION=$((END_SECONDS - START_SECONDS))
+        echo "Deployment completed in $DURATION seconds"
+
+        # Record metrics to a file for later analysis
+        mkdir -p metrics
+        echo "{\"version\": \"${{ needs.prepare.outputs.version }}\", \"environment\": \"${{ needs.prepare.outputs.environment }}\", \"duration\": $DURATION, \"timestamp\": \"$CURRENT_TIME\"}" > metrics/deployment-${{ needs.prepare.outputs.version }}.json
+
+    - name: Upload metrics
+      uses: actions/upload-artifact@v3
+      with:
+        name: deployment-metrics
+        path: metrics/
+        if-no-files-found: ignore

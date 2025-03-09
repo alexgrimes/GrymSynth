@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XenakisLDM Musical Concept Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            color: #343a40;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+        }
+        .slider {
+            flex: 1;
+        }
+        .slider-value {
+            width: 40px;
+            text-align: right;
+            margin-left: 10px;
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .parameter-table th, .parameter-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .parameter-table th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XenakisLDM Musical Concept Visualization</h1>
+        <p style="text-align: center; margin-top: -10px; color: #6c757d;">Incorporating Denis Smalley's Spectromorphology, Curtis Roads' Granular Synthesis, and Simon Emmerson's Language Grid</p>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <div class="tab-button active" data-tab="concept-mapping">Concept Mapping</div>
+                <div class="tab-button" data-tab="concept-relationships">Concept Relationships</div>
+                <div class="tab-button" data-tab="parameter-space">Parameter Space</div>
+            </div>
+
+            <div class="tab-content active" id="concept-mapping">
+                <div class="card">
+                    <h2>Musical Concept Mapping</h2>
+                    <p>This visualization shows how a musical concept maps to mathematical parameters.</p>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="concept-select">Musical Concept:</label>
+                            <select id="concept-select">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <canvas id="concept-canvas" width="800" height="400"></canvas>
+
+                    <div id="concept-info">
+                        <!-- Concept information will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="concept-relationships">
+                <div class="card">
+                    <h2>Concept Relationships</h2>
+                    <p>This visualization shows the relationships between different musical concepts.</p>
+
+                    <canvas id="relationships-canvas" width="800" height="600"></canvas>
+                </div>
+            </div>
+
+            <div class="tab-content" id="parameter-space">
+                <div class="card">
+                    <h2>Parameter Space Exploration</h2>
+                    <p>This visualization shows how two musical concepts interact to affect a specific parameter.</p>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="x-axis-concept">X-Axis Concept:</label>
+                            <select id="x-axis-concept">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="y-axis-concept">Y-Axis Concept:</label>
+                            <select id="y-axis-concept">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="parameter-select">Parameter:</label>
+                            <select id="parameter-select">
+                                <option value="spatial.density">Spatial Density</option>
+                                <option value="stochastic.variance">Stochastic Variance</option>
+                                <option value="cellular.rule">Cellular Rule</option>
+                                <option value="gameTheory.competitionFactor">Competition Factor</option>
+                                <option value="spatial.frequencyPull">Frequency Pull</option>
+                                <option value="spatial.undulationRate">Undulation Rate</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <canvas id="parameter-canvas" width="800" height="600"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Interactive Parameter Control</h2>
+            <p>Adjust the sliders to see how musical concepts affect mathematical parameters.</p>
+
+            <div id="concept-sliders">
+                <!-- Sliders will be populated by JavaScript -->
+            </div>
+
+            <h3>Resulting Parameters</h3>
+            <table class="parameter-table" id="parameter-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Parameter values will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Mock implementation of the XenakisLDM library for the browser
+        // In a real implementation, you would bundle the library using a tool like webpack
+        const XenakisLDM = {
+            MusicalConceptMapper: class MusicalConceptMapper {
+                constructor(config = {}) {
+                    this.config = {
+                        debug: false,
+                        visualizationEnabled: true,
+                        ...config
+                    };
+
+                    // Initialize concept mappings
+                    this.conceptMappings = {
+                        // Harmonic density - affects spatial density and intervals
+                        "harmonic density": [
+                            {
+                                target: "spatial.density",
+                                mapping: value => Math.pow(value, 1.5), // Non-linear mapping for more intuitive control
+                                description: "Controls the density of spectral transformations"
+                            },
+                            {
+                                target: "spatial.intervals",
+                                mapping: value => {
+                                    // Dense harmonics use more intervals
+                                    if (value < 0.3) return [0, 7, 12]; // Open (fifth + octave)
+                                    if (value < 0.6) return [0, 4, 7, 12]; // Major (triad + octave)
+                                    if (value < 0.8) return [0, 3, 7, 10, 12]; // Seventh chord + octave
+                                    return [0, 2, 3, 5, 7, 8, 10, 12]; // Dense (chromatic clusters)
+                                },
+                                description: "Determines the harmonic intervals used in the transformation"
+                            }
+                        ],
+
+                        // Textural complexity - affects stochastic variance and cellular automata rules
+                        "textural complexity": [
+                            {
+                                target: "stochastic.variance",
+                                mapping: value => value * 0.3, // Linear mapping with scaling
+                                description: "Controls the amount of randomness in the texture"
+                            },
+                            {
+                                target: "cellular.rule",
+                                mapping: value => {
+                                    // Different CA rules create different textural patterns
+                                    if (value < 0.25) return 90; // Simple, regular patterns
+                                    if (value < 0.5) return 30; // More complex patterns
+                                    if (value < 0.75) return 110; // Complex but structured patterns
+                                    return 184; // Very complex patterns
+                                },
+                                description: "Determines the cellular automata rule used for texture generation"
+                            }
+                        ],
+
+                        // Rhythmic chaos - affects game theory competition and cellular iterations
+                        "rhythmic chaos": [
+                            {
+                                target: "gameTheory.competitionFactor",
+                                mapping: value => value * 0.8 + 0.2, // Range from 0.2 to 1.0
+                                description: "Controls the level of competition between frequency bands"
+                            },
+                            {
+                                target: "cellular.iterations",
+                                mapping: value => Math.floor(value * 7) + 1, // 1 to 8 iterations
+                                description: "Determines how many iterations of cellular automata are applied"
+                            }
+                        ],
+
+                        // Timbral brightness - affects frequency pull and stochastic frequency dependence
+                        "timbral brightness": [
+                            {
+                                target: "spatial.frequencyPull",
+                                mapping: value => {
+                                    // Non-linear mapping for more intuitive control
+                                    // Higher values create more brightness by pulling frequencies upward
+                                    return Math.pow(value, 2) * 0.2;
+                                },
+                                description: "Controls how much frequencies are shifted upward"
+                            },
+                            {
+                                target: "stochastic.frequencyDependence",
+                                mapping: value => value * 0.5 + 0.1, // Range from 0.1 to 0.6
+                                description: "Determines how much the stochastic processes depend on frequency"
+                            }
+                        ],
+
+                        // Dynamic evolution - affects undulation rate and evolution parameters
+                        "dynamic evolution": [
+                            {
+                                target: "spatial.undulationRate",
+                                mapping: value => value * 0.8, // Linear mapping with scaling
+                                description: "Controls the rate of temporal variation in field strength"
+                            },
+                            {
+                                target: "integration.weights.cellular",
+                                mapping: value => value * 0.8, // Linear mapping with scaling
+                                description: "Increases the influence of cellular automata for more evolution"
+                            },
+                            {
+                                target: "integration.weights.gameTheory",
+                                mapping: value => value * 0.6, // Linear mapping with scaling
+                                description: "Increases the influence of game theory for more evolution"
+                            }
+                        ]
+                    };
+
+                    // Initialize visualization data
+                    this.visualizationData = {};
+                    this._generateVisualizationData();
+                }
+
+                mapConcept(concept, value) {
+                    if (!this.conceptMappings[concept]) {
+                        throw new Error(`Unknown musical concept: ${concept}`);
+                    }
+
+                    // Ensure value is in the valid range
+                    value = Math.min(Math.max(value, 0), 1);
+
+                    const result = {};
+                    this.conceptMappings[concept].forEach(mapping => {
+                        const path = mapping.target.split('.');
+                        let current = result;
+
+                        // Create nested structure
+                        for (let i = 0; i < path.length - 1; i++) {
+                            if (!current[path[i]]) {
+                                current[path[i]] = {};
+                            }
+                            current = current[path[i]];
+                        }
+
+                        // Set final value
+                        current[path[path.length - 1]] = mapping.mapping(value);
+                    });
+
+                    return result;
+                }
+
+                mapMultipleConcepts(concepts) {
+                    const result = {};
+
+                    // Process each concept
+                    Object.entries(concepts).forEach(([concept, value]) => {
+                        try {
+                            const conceptParams = this.mapConcept(concept, value);
+                            this._mergeParams(result, conceptParams);
+                        } catch (error) {
+                            if (this.config.debug) {
+                                console.warn(`Error mapping concept "${concept}": ${error.message}`);
+                            }
+                        }
+                    });
+
+                    return result;
+                }
+
+                getAvailableConcepts() {
+                    return Object.keys(this.conceptMappings);
+                }
+
+                getConceptInfo(concept) {
+                    if (!this.conceptMappings[concept]) {
+                        throw new Error(`Unknown musical concept: ${concept}`);
+                    }
+
+                    return {
+                        name: concept,
+                        parameters: this.conceptMappings[concept].map(mapping => ({
+                            target: mapping.target,
+                            description: mapping.description
+                        })),
+                        visualizationData: this.visualizationData[concept]
+                    };
+                }
+
+                getVisualizationData(concept) {
+                    if (!this.config.visualizationEnabled) {
+                        throw new Error('Visualization is disabled');
+                    }
+
+                    if (!this.visualizationData[concept]) {
+                        throw new Error(`No visualization data for concept: ${concept}`);
+                    }
+
+                    return this.visualizationData[concept];
+                }
+
+                _generateVisualizationData() {
+                    if (!this.config.visualizationEnabled) {
+                        return;
+                    }
+
+                    // Generate visualization data for each concept
+                    Object.keys(this.conceptMappings).forEach(concept => {
+                        const samples = 11; // 0.0, 0.1, 0.2, ..., 1.0
+                        const samplePoints = Array.from({ length: samples }, (_, i) => i / (samples - 1));
+
+                        const mappingResults = samplePoints.map(value => {
+                            const result = {};
+
+                            // Map the concept at this value
+                            this.conceptMappings[concept].forEach(mapping => {
+                                const path = mapping.target.split('.');
+                                let current = result;
+
+                                // Create nested structure
+                                for (let i = 0; i < path.length - 1; i++) {
+                                    if (!current[path[i]]) {
+                                        current[path[i]] = {};
+                                    }
+                                    current = current[path[i]];
+                                }
+
+                                // Set final value
+                                const mappedValue = mapping.mapping(value);
+                                current[path[path.length - 1]] = mappedValue;
+
+                                // Store the raw mapping for visualization
+                                if (!result._raw) {
+                                    result._raw = {};
+                                }
+                                result._raw[mapping.target] = mappedValue;
+                            });
+
+                            return result;
+                        });
+
+                        // Store the visualization data
+                        this.visualizationData[concept] = {
+                            samplePoints,
+                            mappingResults
+                        };
+                    });
+                }
+
+                _mergeParams(target, source) {
+                    Object.keys(source).forEach(key => {
+                        if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+                            // Handle nested objects
+                            if (!target[key]) {
+                                target[key] = {};
+                            }
+                            this._mergeParams(target[key], source[key]);
+                        } else {
+                            // Handle primitive values and arrays
+                            target[key] = source[key];
+                        }
+                    });
+                }
+            },
+
+            ConceptVisualizer: class ConceptVisualizer {
+                constructor(config = {}) {
+                    this.config = {
+                        canvasWidth: 800,
+                        canvasHeight: 400,
+                        padding: 40,
+                        colors: {
+                            background: '#f8f9fa',
+                            axis: '#343a40',
+                            grid: '#dee2e6',
+                            primary: '#007bff',
+                            secondary: '#6c757d',
+                            highlight: '#fd7e14'
+                        },
+                        ...config
+                    };
+
+                    this.canvas = null;
+                    this.ctx = null;
+                }
+
+                initialize(canvas) {
+                    this.canvas = canvas;
+                    this.ctx = canvas.getContext('2d');
+
+                    // Set canvas dimensions
+                    this.canvas.width = this.config.canvasWidth;
+                    this.canvas.height = this.config.canvasHeight;
+
+                    // Clear canvas
+                    this._clearCanvas();
+                }
+
+                visualizeConceptMapping(mapper, concept) {
+                    if (!this.canvas || !this.ctx) {
+                        throw new Error('Visualizer not initialized. Call initialize() first.');
+                    }
+
+                    // Get visualization data for the concept
+                    const visualizationData = mapper.getVisualizationData(concept);
+                    const { samplePoints, mappingResults } = visualizationData;
+
+                    // Clear canvas
+                    this._clearCanvas();
+
+                    // Draw title
+                    this._drawTitle(`${concept.toUpperCase()} MAPPING`);
+
+                    // Get parameter targets for this concept
+                    const conceptInfo = mapper.getConceptInfo(concept);
+                    const parameterTargets = conceptInfo.parameters.map(p => p.target);
+
+                    // Draw parameter curves
+                    this._drawParameterCurves(samplePoints, mappingResults, parameterTargets);
+
+                    // Draw axes and grid
+                    this._drawAxes('Concept Value', 'Parameter Value');
+
+                    // Draw legend
+                    this._drawLegend(parameterTargets);
+                }
+
+                visualizeConceptRelationships(mapper, concepts) {
+                    if (!this.canvas || !this.ctx) {
+                        throw new Error('Visualizer not initialized. Call initialize() first.');
+                    }
+
+                    // Clear canvas
+                    this._clearCanvas();
+
+                    // Draw title
+                    this._drawTitle('CONCEPT RELATIONSHIPS');
+
+                    // Create a matrix of relationships
+                    const matrix = this._createRelationshipMatrix(mapper, concepts);
+
+                    // Draw the relationship matrix
+                    this._drawRelationshipMatrix(matrix, concepts);
+                }
+
+                visualizeParameterSpace(mapper, xAxisConcept, yAxisConcept, parameter) {
+                    if (!this.canvas || !this.ctx) {
+                        throw new Error('Visualizer not initialized. Call initialize() first.');
+                    }
+
+                    // Clear canvas
+                    this._clearCanvas();
+
+                    // Draw title
+                    this._drawTitle(`PARAMETER SPACE: ${parameter}`);
+
+                    // Create a 2D grid of parameter values
+                    const grid = this._createParameterGrid(mapper, xAxisConcept, yAxisConcept, parameter);
+
+                    // Draw the parameter space
+                    this._drawParameterSpace(grid, xAxisConcept, yAxisConcept);
+
+                    // Draw axes
+                    this._drawAxes(xAxisConcept, yAxisConcept);
+                }
+
+                _clearCanvas() {
+                    this.ctx.fillStyle = this.config.colors.background;
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+
+                _drawTitle(title) {
+                    this.ctx.fillStyle = this.config.colors.axis;
+                    this.ctx.font = 'bold 18px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(title, this.canvas.width / 2, 25);
+                }
+
+                _drawParameterCurves(samplePoints, mappingResults, parameterTargets) {
+                    const width = this.canvas.width - 2 * this.config.padding;
+                    const height = this.canvas.height - 2 * this.config.padding;
+                    const startX = this.config.padding;
+                    const startY = this.canvas.height - this.config.padding;
+
+                    // For each parameter
+                    parameterTargets.forEach((target, paramIndex) => {
+                        // Get values for this parameter
+                        const values = mappingResults.map(result => {
+                            // Extract the value from the nested structure
+                            const path = target.split('.');
+                            let current = result._raw;
+                            return current[target];
+                        });
+
+                        // Normalize values if they're not arrays
+                        if (!Array.isArray(values[0])) {
+                            const min = Math.min(...values);
+                            const max = Math.max(...values);
+                            const range = max - min;
+
+                            // Set color based on parameter index
+                            this.ctx.strokeStyle = this._getParameterColor(paramIndex);
+                            this.ctx.lineWidth = 2;
+
+                            // Begin path
+                            this.ctx.beginPath();
+
+                            // Draw curve
+                            samplePoints.forEach((point, i) => {
+                                const x = startX + point * width;
+                                const normalizedValue = range > 0 ? (values[i] - min) / range : 0.5;
+                                const y = startY - normalizedValue * height;
+
+                                if (i === 0) {
+                                    this.ctx.moveTo(x, y);
+                                } else {
+                                    this.ctx.lineTo(x, y);
+                                }
+                            });
+
+                            // Stroke path
+                            this.ctx.stroke();
+
+                            // Draw points
+                            samplePoints.forEach((point, i) => {
+                                const x = startX + point * width;
+                                const normalizedValue = range > 0 ? (values[i] - min) / range : 0.5;
+                                const y = startY - normalizedValue * height;
+
+                                this.ctx.fillStyle = this._getParameterColor(paramIndex);
+                                this.ctx.beginPath();
+                                this.ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                                this.ctx.fill();
+                            });
+                        } else {
+                            // For array values, draw a bar for each sample point
+                            // showing the length of the array
+                            const lengths = values.map(arr => arr.length);
+                            const maxLength = Math.max(...lengths);
+
+                            // Set color based on parameter index
+                            this.ctx.fillStyle = this._getParameterColor(paramIndex);
+
+                            // Draw bars
+                            samplePoints.forEach((point, i) => {
+                                const x = startX + point * width - 5;
+                                const barHeight = (lengths[i] / maxLength) * height;
+                                const y = startY - barHeight;
+
+                                this.ctx.fillRect(x, y, 10, barHeight);
+                            });
+                        }
+                    });
+                }
+
+                _drawAxes(xLabel, yLabel) {
+                    const width = this.canvas.width - 2 * this.config.padding;
+                    const height = this.canvas.height - 2 * this.config.padding;
+                    const startX = this.config.padding;
+                    const startY = this.canvas.height - this.config.padding;
+
+                    // Draw grid
+                    this.ctx.strokeStyle = this.config.colors.grid;
+                    this.ctx.lineWidth = 0.5;
+
+                    // Vertical grid lines
+                    for (let i = 0; i <= 10; i++) {
+                        const x = startX + (i / 10) * width;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, startY);
+                        this.ctx.lineTo(x, startY - height);
+                        this.ctx.stroke();
+                    }
+
+                    // Horizontal grid lines
+                    for (let i = 0; i <= 10; i++) {
+                        const y = startY - (i / 10) * height;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(startX, y);
+                        this.ctx.lineTo(startX + width, y);
+                        this.ctx.stroke();
+                    }
+
+                    // Draw axes
+                    this.ctx.strokeStyle = this.config.colors.axis;
+                    this.ctx.lineWidth = 2;
+
+                    // X axis
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(startX, startY);
+                    this.ctx.lineTo(startX + width, startY);
+                    this.ctx.stroke();
+
+                    // Y axis
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(startX, startY);
+                    this.ctx.lineTo(startX, startY - height);
+                    this.ctx.stroke();
+
+                    // Draw labels
+                    this.ctx.fillStyle = this.config.colors.axis;
+                    this.ctx.font = '14px Arial';
+
+                    // X axis label
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(xLabel, startX + width / 2, startY + 30);
+
+                    // Y axis label
+                    this.ctx.save();
+                    this.ctx.translate(startX - 30, startY - height / 2);
+                    this.ctx.rotate(-Math.PI / 2);
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(yLabel, 0, 0);
+                    this.ctx.restore();
+
+                    // Draw tick marks and values
+                    this.ctx.font = '10px Arial';
+
+                    // X axis ticks
+                    for (let i = 0; i <= 10; i++) {
+                        const x = startX + (i / 10) * width;
+                        const value = (i / 10).toFixed(1);
+
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, startY);
+                        this.ctx.lineTo(x, startY + 5);
+                        this.ctx.stroke();
+
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText(value, x, startY + 15);
+                    }
+
+                    // Y axis ticks
+                    for (let i = 0; i <= 10; i++) {
+                        const y = startY - (i / 10) * height;
+                        const value = (i / 10).toFixed(1);
+
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(startX, y);
+                        this.ctx.lineTo(startX - 5, y);
+                        this.ctx.stroke();
+
+                        this.ctx.textAlign = 'right';
+                        this.ctx.fillText(value, startX - 10, y + 3);
+                    }
+                }
+
+                _drawLegend(parameterTargets) {
+                    const startX = this.canvas.width - this.config.padding - 200;
+                    const startY = this.config.padding + 20;
+
+                    // Draw legend box
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    this.ctx.fillRect(startX, startY, 200, parameterTargets.length * 20 + 10);
+
+                    this.ctx.strokeStyle = this.config.colors.axis;
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeRect(startX, startY, 200, parameterTargets.length * 20 + 10);
+
+                    // Draw legend items
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'left';
+
+                    parameterTargets.forEach((target, i) => {
+                        const x = startX + 10;
+                        const y = startY + 20 * (i + 1);
+
+                        // Draw color box
+                        this.ctx.fillStyle = this._getParameterColor(i);
+                        this.ctx.fillRect(x, y - 10, 15, 10);
+
+                        // Draw parameter name
+                        this.ctx.fillStyle = this.config.colors.axis;
+                        this.ctx.fillText(target, x + 25, y);
+                    });
+                }
+
+                _createRelationshipMatrix(mapper, concepts) {
+                    const matrix = [];
+
+                    // For each concept pair, calculate relationship strength
+                    for (let i = 0; i < concepts.length; i++) {
+                        matrix[i] = [];
+
+                        for (let j = 0; j < concepts.length; j++) {
+                            if (i === j) {
+                                // Self-relationship is 1.0
+                                matrix[i][j] = 1.0;
+                            } else {
+                                // Calculate relationship based on parameter overlap
+                                const conceptInfoI = mapper.getConceptInfo(concepts[i]);
+                                const conceptInfoJ = mapper.getConceptInfo(concepts[j]);
+
+                                const paramsI = conceptInfoI.parameters.map(p => p.target);
+                                const paramsJ = conceptInfoJ.parameters.map(p => p.target);
+
+                                // Count overlapping parameters
+                                const overlap = paramsI.filter(p => paramsJ.includes(p)).length;
+
+                                // Calculate relationship strength
+                                matrix[i][j] = overlap / Math.max(paramsI.length, paramsJ.length);
+                            }
+                        }
+                    }
+
+                    return matrix;
+                }
+
+                _drawRelationshipMatrix(matrix, concepts) {
+                    const size = concepts.length;
+                    const cellSize = Math.min(
+                        (this.canvas.width - 2 * this.config.padding - 100) / size,
+                        (this.canvas.height - 2 * this.config.padding - 100) / size
+                    );
+
+                    const startX = this.config.padding + 100;
+                    const startY = this.config.padding + 100;
+
+                    // Draw matrix cells
+                    for (let i = 0; i < size; i++) {
+                        for (let j = 0; j < size; j++) {
+                            const x = startX + j * cellSize;
+                            const y = startY + i * cellSize;
+
+                            // Calculate color based on relationship strength
+                            const value = matrix[i][j];
+                            const r = Math.floor(255 * (1 - value));
+                            const g = Math.floor(255 * (1 - Math.abs(value - 0.5) * 2));
+                            const b = Math.floor(255 * value);
+
+                            // Fill cell
+                            this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                            this.ctx.fillRect(x, y, cellSize, cellSize);
+
+                            // Draw cell value
+                            this.ctx.fillStyle = 'white';
+                            this.ctx.font = '12px Arial';
+                            this.ctx.textAlign = 'center';
+                            this.ctx.fillText(value.toFixed(2), x + cellSize / 2, y + cellSize / 2 + 4);
+                        }
+                    }
+
+                    // Draw concept labels
+                    this.ctx.fillStyle = this.config.colors.axis;
+                    this.ctx.font = '12px Arial';
+
+                    // Row labels (Y axis)
+                    for (let i = 0; i < size; i++) {
+                        const y = startY + i * cellSize + cellSize / 2;
+
+                        this.ctx.textAlign = 'right';
+                        this.ctx.fillText(concepts[i], startX - 10, y + 4);
+                    }
+
+                    // Column labels (X axis)
+                    for (let j = 0; j < size; j++) {
+                        const x = startX + j * cellSize + cellSize / 2;
+
+                        this.ctx.textAlign = 'center';
+                        this.ctx.save();
+                        this.ctx.translate(x, startY - 10);
+                        this.ctx.rotate(-Math.PI / 4);
+                        this.ctx.fillText(concepts[j], 0, 0);
+                        this.ctx.restore();
+                    }
+                }
+
+                _createParameterGrid(mapper, xAxisConcept, yAxisConcept, parameter) {
+                    const gridSize = 20;
+                    const grid = [];
+
+                    // For each grid point, calculate parameter value
+                    for (let y = 0; y < gridSize; y++) {
+                        grid[y] = [];
+
+                        for (let x = 0; x < gridSize; x++) {
+                            const xValue = x / (gridSize - 1);
+                            const yValue = y / (gridSize - 1);
+
+                            // Map concepts to parameters
+                            const params = mapper.mapMultipleConcepts({
+                                [xAxisConcept]: xValue,
+                                [yAxisConcept]: yValue
+                            });
+
+                            // Extract parameter value
+                            const path = parameter.split('.');
+                            let value = params;
+
+                            for (const key of path) {
+                                if (value && value[key] !== undefined) {
+                                    value = value[key];
+                                } else {
+                                    value = null;
+                                    break;
+                                }
+                            }
+
+                            // Store parameter value
+                            grid[y][x] = value;
+                        }
+                    }
+
+                    return grid;
+                }
+
+                _drawParameterSpace(grid, xAxisConcept, yAxisConcept) {
+                    const gridSize = grid.length;
+                    const cellSize = Math.min(
+                        (this.canvas.width - 2 * this.config.padding) / gridSize,
+                        (this.canvas.height - 2 * this.config.padding) / gridSize
+                    );
+
+                    const startX = this.config.padding;
+                    const startY = this.config.padding;
+
+                    // Find min and max values
+                    let min = Infinity;
+                    let max = -Infinity;
+
+                    for (let y = 0; y < gridSize; y++) {
+                        for (let x = 0; x < gridSize; x++) {
+                            const value = grid[y][x];
+
+                            if (value !== null && !isNaN(value)) {
+                                min = Math.min(min, value);
+                                max = Math.max(max, value);
+                            }
+                        }
+                    }
+
+                    // Draw grid cells
+                    for (let y = 0; y < gridSize; y++) {
+                        for (let x = 0; x < gridSize; x++) {
+                            const cellX = startX + x * cellSize;
+                            const cellY = startY + (gridSize - y - 1) * cellSize;
+
+                            const value = grid[y][x];
+
+                            if (value !== null && !isNaN(value)) {
+                                // Normalize value
+                                const normalizedValue = (value - min) / (max - min);
+
+                                // Calculate color
+                                const r = Math.floor(255 * (1 - normalizedValue));
+                                const g = Math.floor(255 * (1 - Math.abs(normalizedValue - 0.5) * 2));
+                                const b = Math.floor(255 * normalizedValue);
+
+                                // Fill cell
+                                this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                                this.ctx.fillRect(cellX, cellY, cellSize, cellSize);
+                            } else {
+                                // Fill with gray for null or NaN values
+                                this.ctx.fillStyle = '#cccccc';
+                                this.ctx.fillRect(cellX, cellY, cellSize, cellSize);
+                            }
+                        }
+                    }
+
+                    // Draw color scale
+                    this._drawColorScale(min, max);
+                }
+
+                _drawColorScale(min, max) {
+                    const width = 20;
+                    const height = this.canvas.height - 2 * this.config.padding;
+                    const startX = this.canvas.width - this.config.padding - width;
+                    const startY = this.config.padding;
+
+                    // Draw scale gradient
+                    for (let y = 0; y < height; y++) {
+                        const normalizedValue = 1 - (y / height);
+
+                        // Calculate color
+                        const r = Math.floor(255 * (1 - normalizedValue));
+                        const g = Math.floor(255 * (1 - Math.abs(normalizedValue - 0.5) * 2));
+                        const b = Math.floor(255 * normalizedValue);
+
+                        // Draw line
+                        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                        this.ctx.fillRect(startX, startY + y, width, 1);
+                    }
+
+                    // Draw scale border
+                    this.ctx.strokeStyle = this.config.colors.axis;
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeRect(startX, startY, width, height);
+
+                    // Draw scale labels
+                    this.ctx.fillStyle = this.config.colors.axis;
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'left';
+
+                    // Max value
+                    this.ctx.fillText(max.toFixed(2), startX + width + 5, startY + 10);
+
+                    // Middle value
+                    this.ctx.fillText(((max + min) / 2).toFixed(2), startX + width + 5, startY + height / 2);
+
+                    // Min value
+                    this.ctx.fillText(min.toFixed(2), startX + width + 5, startY + height - 5);
+                }
+
+                _getParameterColor(index) {
+                    const colors = [
+                        '#007bff', // blue
+                        '#fd7e14', // orange
+                        '#28a745', // green
+                        '#dc3545', // red
+                        '#6f42c1', // purple
+                        '#20c997', // teal
+                        '#17a2b8', // cyan
+                        '#6c757d'  // gray
+                    ];
+
+                    return colors[index % colors.length];
+                }
+            }
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create instances
+            const mapper = new XenakisLDM.MusicalConceptMapper();
+            const conceptVisualizer = new XenakisLDM.ConceptVisualizer();
+            const relationshipsVisualizer = new XenakisLDM.ConceptVisualizer();
+            const parameterVisualizer = new XenakisLDM.ConceptVisualizer();
+
+            // Initialize visualizers
+            conceptVisualizer.initialize(document.getElementById('concept-canvas'));
+            relationshipsVisualizer.initialize(document.getElementById('relationships-canvas'));
+            parameterVisualizer.initialize(document.getElementById('parameter-canvas'));
+
+            // Get available concepts
+            const concepts = mapper.getAvailableConcepts();
+
+            // Populate concept select
+            const conceptSelect = document.getElementById('concept-select');
+            concepts.forEach(concept => {
+                const option = document.createElement('option');
+                option.value = concept;
+                option.textContent = concept.charAt(0).toUpperCase() + concept.slice(1);
+                conceptSelect.appendChild(option);
+            });
+
+            // Populate X and Y axis concept selects
+            const xAxisSelect = document.getElementById('x-axis-concept');
+            const yAxisSelect = document.getElementById('y-axis-concept');
+
+            concepts.forEach(concept => {
+                const xOption = document.createElement('option');
+                xOption.value = concept;
+                xOption.textContent = concept.charAt(0).toUpperCase() + concept.slice(1);
+                xAxisSelect.appendChild(xOption);
+
+                const yOption = document.createElement('option');
+                yOption.value = concept;
+                yOption.textContent = concept.charAt(0).toUpperCase() + concept.slice(1);
+                yAxisSelect.appendChild(yOption);
+            });
+
+            // Set default values
+            xAxisSelect.value = concepts[0];
+            yAxisSelect.value = concepts[1];
+
+            // Create concept sliders
+            const slidersContainer = document.getElementById('concept-sliders');
+
+            concepts.forEach(concept => {
+                const sliderGroup = document.createElement('div');
+                sliderGroup.className = 'control-group';
+
+                const label = document.createElement('label');
+                label.textContent = concept.charAt(0).toUpperCase() + concept.slice(1) + ':';
+                sliderGroup.appendChild(label);
+
+                const sliderContainer = document.createElement('div');
+                sliderContainer.className = 'slider-container';
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = 0;
+                slider.max = 1;
+                slider.step = 0.01;
+                slider.value = 0.5;
+                slider.className = 'slider';
+                slider.dataset.concept = concept;
+
+                const valueDisplay = document.createElement('span');
+                valueDisplay.className = 'slider-value';
+                valueDisplay.textContent = slider.value;
+
+                sliderContainer.appendChild(slider);
+                sliderContainer.appendChild(valueDisplay);
+                sliderGroup.appendChild(sliderContainer);
+
+                slidersContainer.appendChild(sliderGroup);
+
+                // Update value display when slider changes
+                slider.addEventListener('input', () => {
+                    valueDisplay.textContent = parseFloat(slider.value).toFixed(2);
+                    updateParameters();
+                });
+            });
+
+            // Initialize visualizations
+            visualizeSelectedConcept();
+            visualizeConceptRelationships();
+            visualizeParameterSpace();
+            updateParameters();
+
+            // Event listeners
+            conceptSelect.addEventListener('change', visualizeSelectedConcept);
+            xAxisSelect.addEventListener('change', visualizeParameterSpace);
+            yAxisSelect.addEventListener('change', visualizeParameterSpace);
+            document.getElementById('parameter-select').addEventListener('change', visualizeParameterSpace);
+
+            // Tab switching
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons and content
+                    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked button and corresponding content
+                    button.classList.add('active');
+                    document.getElementById(button.dataset.tab).classList.add('active');
+                });
+            });
+
+            // Functions
+            function visualizeSelectedConcept() {
+                const concept = conceptSelect.value;
+                conceptVisualizer.visualizeConceptMapping(mapper, concept);
+
+                // Update concept info
+                const conceptInfo = mapper.getConceptInfo(concept);
+                const infoContainer = document.getElementById('concept-info');
+
+                let infoHTML = '<h3>Parameters Affected</h3><ul>';
+                conceptInfo.parameters.forEach(param => {
+                    infoHTML += `<li><strong>${param.target}</strong>: ${param.description}</li>`;
+                });
+                infoHTML += '</ul>';
+
+                infoContainer.innerHTML = infoHTML;
+            }
+
+            function visualizeConceptRelationships() {
+                relationshipsVisualizer.visualizeConceptRelationships(mapper, concepts);
+            }
+
+            function visualizeParameterSpace() {
+                const xConcept = xAxisSelect.value;
+                const yConcept = yAxisSelect.value;
+                const parameter = document.getElementById('parameter-select').value;
+
+                parameterVisualizer.visualizeParameterSpace(mapper, xConcept, yConcept, parameter);
+            }
+
+            function updateParameters() {
+                // Get values from all sliders
+                const conceptValues = {};
+                document.querySelectorAll('.slider').forEach(slider => {
+                    conceptValues[slider.dataset.concept] = parseFloat(slider.value);
+                });
+
+                // Map concepts to parameters
+                const params = mapper.mapMultipleConcepts(conceptValues);
+
+                // Update parameter table
+                const tableBody = document.querySelector('#parameter-table tbody');
+                tableBody.innerHTML = '';
+
+                // Function to recursively add parameters to the table
+                function addParamsToTable(params, prefix = '') {
+                    Object.entries(params).forEach(([key, value]) => {
+                        const paramName = prefix ? `${prefix}.${key}` : key;
+
+                        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                            // Recursive call for nested objects
+                            addParamsToTable(value, paramName);
+                        } else {
+                            // Add row for this parameter
+                            const row = document.createElement('tr');
+
+                            const nameCell = document.createElement('td');
+                            nameCell.textContent = paramName;
+                            row.appendChild(nameCell);
+
+                            const valueCell = document.createElement('td');
+                            if (Array.isArray(value)) {
+                                valueCell.textContent = `[${value.join(', ')}]`;
+                            } else {
+                                valueCell.textContent = typeof value === 'number' ? value.toFixed(4) : value;
+                            }
+                            row.appendChild(valueCell);
+
+                            const descriptionCell = document.createElement('td');
+                            // Find description if available
+                            for (const concept in mapper.conceptMappings) {
+                                const mapping = mapper.conceptMappings[concept].find(m => m.target === paramName);
+                                if (mapping) {
+                                    descriptionCell.textContent = mapping.description;
+                                    break;
+                                }
+                            }
+                            row.appendChild(descriptionCell);
+
+                            tableBody.appendChild(row);
+                        }
+                    });
+                }
+
+                addParamsToTable(params);
+            }
+        });
+    </script>
+</body>
+</html>

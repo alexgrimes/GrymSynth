@@ -1,0 +1,79 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Node.js
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Build artifacts
+dist
+dist-test
+coverage
+.nyc_output
+
+# Environment files
+.env
+.env.*
+deployment/env-templates
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Kubernetes
+deployment/kubernetes
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Development tools
+.vscode
+.idea
+.editorconfig
+.eslintrc.json
+.eslintignore
+.prettierrc
+.prettierignore
+
+# Test files
+__tests__
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+test
+tests
+
+# Temporary files
+.tmp
+.temp
+.cache
+logs
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Large binary files
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.mp4
+*.mov
+*.avi
+*.webm
+*.model
+models/
+pytorch_wheels/
+gama_env/
+gama_env_39/
