@@ -72,7 +72,7 @@
   },
   "dependencies": {
     "@react-three/drei": "^10.0.4",
-    "@react-three/fiber": "^9.0.4",
+    "@react-three/fiber": "^9.1.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@types/rimraf": "^4.0.5",
     "commander": "^13.1.0",
