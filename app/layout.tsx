@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import '../src/app/globals.css';
-
-const inter = Inter({ subsets: ['latin'] });
+import '../src/styles/fonts.css';
 
 export const metadata: Metadata = {
   title: 'GrymSynth',
@@ -16,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-text">
         <main className="flex min-h-screen flex-col">
           {children}
         </main>

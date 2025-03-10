@@ -1,88 +1,95 @@
-# Collaborative Editing System Implementation Prompt
+# Collaborative Editing System Implementation Plan
 
-## Task Description
+## Overview
 
-Implement the Collaborative Editing System for GrymSynth as outlined in the implementation plan (docs/IMPLEMENTATION-PLAN-2025-Q2.md). This should include:
+The Collaborative Editing System is a key component of GrymSynth that enables multiple users to work together on audio projects in real-time. This system will allow users to share, combine, and manipulate audio patterns across different samples, fostering a collaborative creative environment.
 
-1. Developing real-time synchronization for multi-user editing
-2. Creating user presence and awareness features
-3. Implementing permissions and access control
-4. Adding communication and annotation tools
-5. Integrating with existing Pattern Recognition and MIDI Generation systems
+## Objectives
 
-## Technical Requirements
+1. Implement real-time collaboration for audio editing and pattern manipulation
+2. Create a secure user authentication and session management system
+3. Develop a permissions and roles framework for collaborative projects
+4. Build a real-time notification and activity tracking system
+5. Integrate with the Pattern Recognition System for shared pattern manipulation
 
-1. **Real-time Synchronization**
-   - Implement Operational Transformation or CRDT for conflict resolution
-   - Create efficient delta-based updates for minimal data transfer
-   - Develop robust error handling and recovery mechanisms
-   - Implement version history and change tracking
-   - Add offline editing with synchronization upon reconnection
+## Implementation Tasks
 
-2. **User Presence and Awareness**
-   - Create visual indicators for user presence and activity
-   - Implement cursor/selection sharing between collaborators
-   - Add user avatars and identification in the interface
-   - Develop activity feeds for recent changes
-   - Implement notifications for important collaborative events
+### 1. Real-Time Collaboration Engine
 
-3. **Permissions and Access Control**
-   - Create role-based access control (viewer, editor, admin)
-   - Implement fine-grained permissions for specific project elements
-   - Add invitation and sharing mechanisms
-   - Develop audit logging for security and compliance
-   - Implement content locking for critical edits
+- [ ] Implement WebSocket-based communication for real-time updates
+- [ ] Create a conflict resolution system for simultaneous edits
+- [ ] Develop a state synchronization mechanism for consistent project state
+- [ ] Implement operational transformation for audio pattern edits
+- [ ] Create a session management system for tracking active collaborators
 
-4. **Communication Tools**
-   - Create in-app messaging for collaborators
-   - Implement annotation and commenting on audio patterns
-   - Add real-time audio/video communication
-   - Develop shared whiteboards for brainstorming
-   - Implement decision tracking and task assignment
+### 2. User Authentication and Project Sharing
 
-5. **Integration with Existing Systems**
-   - Connect collaborative editing to pattern recognition workflows
-   - Implement shared MIDI editing capabilities
-   - Create collaborative audio manipulation tools
-   - Develop shared project settings and preferences
-   - Add export/import of collaborative projects
+- [ ] Implement secure user authentication with JWT
+- [ ] Create user profiles with customizable settings
+- [ ] Develop a project invitation system
+- [ ] Implement public/private project visibility controls
+- [ ] Create a user discovery feature for finding potential collaborators
 
-## Implementation Approach
+### 3. Permissions and Roles Framework
 
-1. **Component Structure**
-   - Create a CollaborationService for managing real-time connections
-   - Implement UserPresence components for awareness features
-   - Develop PermissionManager for access control
-   - Add CommunicationTools components for messaging and annotations
-   - Create CollaborativeEditors for pattern and MIDI manipulation
+- [ ] Implement role-based access control (owner, editor, viewer)
+- [ ] Create granular permissions for different project elements
+- [ ] Develop a permission request and approval workflow
+- [ ] Implement audit logging for permission changes
+- [ ] Create a UI for managing collaborator permissions
 
-2. **Technical Considerations**
-   - Use WebSockets or WebRTC for real-time communication
-   - Implement a server-side component for persistence and authentication
-   - Use JWT or similar for secure authentication
-   - Leverage IndexedDB for offline capabilities
-   - Implement efficient data structures for collaborative editing
+### 4. Real-Time Notifications and Activity Tracking
 
-3. **Testing Strategy**
-   - Create multi-user test scenarios with simulated collaborators
-   - Implement unit tests for conflict resolution algorithms
-   - Develop integration tests for the complete collaborative system
-   - Add performance tests for various network conditions
-   - Test security measures with penetration testing
+- [ ] Implement a notification system for collaboration events
+- [ ] Create an activity feed showing recent project changes
+- [ ] Develop presence indicators showing active collaborators
+- [ ] Implement cursor/selection sharing for collaborative editing
+- [ ] Create a chat system for real-time communication
 
-## Success Criteria
+### 5. Integration with Pattern Recognition System
 
-1. Multiple users can edit the same project simultaneously without conflicts
-2. Users are aware of others' presence and actions in real-time
-3. Permissions effectively control access to project resources
-4. Communication tools enable effective collaboration
-5. Integration with existing systems creates a seamless workflow
-6. The system performs well under various network conditions
+- [ ] Enable shared access to detected patterns
+- [ ] Implement collaborative pattern tagging and categorization
+- [ ] Create a pattern sharing mechanism between projects
+- [ ] Develop a pattern version history system
+- [ ] Implement pattern attribution to track creator information
+
+## Technical Specifications
+
+### Collaboration Protocol
+
+- **Transport**: WebSockets with fallback to long polling
+- **Message Format**: JSON with operation type, payload, and metadata
+- **State Synchronization**: Vector clock-based with conflict resolution
+- **Latency Handling**: Optimistic updates with rollback capability
+- **Offline Support**: Local changes queue with sync on reconnection
+
+### Security Considerations
+
+- **Authentication**: JWT with refresh tokens
+- **Authorization**: Role-based access control with fine-grained permissions
+- **Data Protection**: End-to-end encryption for sensitive project data
+- **Rate Limiting**: Prevent abuse of real-time communication channels
+- **Audit Trail**: Comprehensive logging of all collaborative actions
+
+### User Interface Requirements
+
+- Collaborative workspace with real-time updates
+- Visual indicators for collaborator presence and actions
+- Permission management interface
+- Activity feed and notification center
+- Chat and communication tools
+
+## Integration with Touch Gesture Support
+
+The Collaborative Editing System will build upon the previously implemented Touch Gesture Support to provide an intuitive and responsive interface for collaborative interactions:
+
+- Use multi-touch gestures for collaborative pattern manipulation
+- Implement touch-based permission controls
+- Create touch-friendly collaboration indicators
+- Develop gesture-based communication shortcuts
+- Ensure responsive design for collaboration on mobile devices
 
 ## Next Steps
 
-After completing the Collaborative Editing System implementation, the next step will be to implement the Advanced Visualization System, which will provide enhanced visual representations of audio data, patterns, and collaborative activities to improve user understanding and interaction.
-
-## Continuation Pattern
-
-After completing and testing this implementation, please create a new prompt for the next step in the implementation plan (Advanced Visualization System), and include instructions to continue this pattern of creating new task prompts until the core vision is fully implemented.
+After implementing the Collaborative Editing System, the next phase will be the Advanced Audio Processing System, which will provide sophisticated tools for transforming and enhancing audio patterns identified by the Pattern Recognition System and shared through the Collaborative Editing System.

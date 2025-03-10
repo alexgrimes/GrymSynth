@@ -3,15 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "ts-node-esm --project tsconfig.esm.json run-example.ts",
+    "start": "node simple-example.js",
     "build": "tsc -b",
     "clean": "rimraf ../dist/examples",
     "prebuild": "npm run clean",
     "prepare": "npm run build",
-    "debug": "NODE_ENV=development ts-node-esm --project tsconfig.esm.json --inspect run-example.ts"
+    "debug": "NODE_ENV=development node --inspect simple-example.js"
   },
   "dependencies": {
-    "../": "file:.."
+    "grymsynth": "file:.."
   },
   "devDependencies": {
     "@types/node": "^18.18.6",

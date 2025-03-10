@@ -93,6 +93,7 @@ export const AudioSampleNavigator: React.FC<AudioSampleNavigatorProps> = ({
     return index === currentSampleIndex ? 1 : 0.5;
   };
 
+  // Handle empty samples case
   if (samples.length === 0) {
     return (
       <div className={`bg-gray-700 rounded-lg border border-gray-600 p-4 text-center ${className}`}>
@@ -101,6 +102,7 @@ export const AudioSampleNavigator: React.FC<AudioSampleNavigatorProps> = ({
     );
   }
 
+  // Get current sample safely
   const currentSample = samples[currentSampleIndex];
 
   return (

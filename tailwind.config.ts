@@ -2,7 +2,7 @@ import { type Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./src/**/*.{ts,tsx}"],
+  content: ["./src/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -61,10 +61,24 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "slide-left": {
+          "0%": { opacity: "0", transform: "translateX(50px)" },
+          "20%": { opacity: "1", transform: "translateX(0)" },
+          "80%": { opacity: "1", transform: "translateX(0)" },
+          "100%": { opacity: "0", transform: "translateX(-50px)" },
+        },
+        "slide-right": {
+          "0%": { opacity: "0", transform: "translateX(-50px)" },
+          "20%": { opacity: "1", transform: "translateX(0)" },
+          "80%": { opacity: "1", transform: "translateX(0)" },
+          "100%": { opacity: "0", transform: "translateX(50px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-left": "slide-left 1s ease-in-out forwards",
+        "slide-right": "slide-right 1s ease-in-out forwards",
       },
     },
   },
