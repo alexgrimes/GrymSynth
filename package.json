@@ -71,7 +71,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@react-three/drei": "^10.0.4",
+    "@react-three/drei": "^10.0.7",
     "@react-three/fiber": "^9.0.4",
     "@reduxjs/toolkit": "^2.6.1",
     "@types/rimraf": "^4.0.5",
