@@ -254,7 +254,7 @@ jobs:
         echo "{\"version\": \"${{ needs.prepare.outputs.version }}\", \"environment\": \"${{ needs.prepare.outputs.environment }}\", \"duration\": $DURATION, \"timestamp\": \"$CURRENT_TIME\"}" > metrics/deployment-${{ needs.prepare.outputs.version }}.json
 
     - name: Upload metrics
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: deployment-metrics
         path: metrics/

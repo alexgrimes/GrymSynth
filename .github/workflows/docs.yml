@@ -148,7 +148,7 @@ jobs:
         pkill -f "docsify serve"
 
     - name: Upload documentation site
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: documentation-site
         path: docs-build/
@@ -209,7 +209,7 @@ jobs:
       continue-on-error: true
 
     - name: Upload accessibility report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: accessibility-report
         path: accessibility-report.json

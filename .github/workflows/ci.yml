@@ -45,7 +45,7 @@ jobs:
       run: npm run test:integration
 
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results-${{ matrix.os }}-${{ matrix.node }}
         path: |
@@ -116,7 +116,7 @@ jobs:
       run: npm run test:perf
 
     - name: Upload performance test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-test-results
         path: reports/performance
@@ -154,7 +154,7 @@ jobs:
         fail_ci_if_error: true
 
     - name: Upload coverage reports as artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-reports
         path: coverage
@@ -186,7 +186,7 @@ jobs:
       run: cd examples && npm test
 
     - name: Upload example test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: example-test-results
         path: examples/reports
